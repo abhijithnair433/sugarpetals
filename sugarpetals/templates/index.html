@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SugarPetals - Your Premium Bakery Experience">
+    <title>SugarPetals | Premium Bakery</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-cake-candles"></i>
+                <span>SugarPetals</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#products" class="nav-link">Products</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#bakery" class="nav-link">Bakery</a></li>
+                <li><a href="#support" class="nav-link">Support</a></li>
+            </ul>
+            <div class="nav-actions">
+                <div class="language-currency">
+                    <select id="language-select" aria-label="Select Language">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                    </select>
+                    <select id="currency-select" aria-label="Select Currency">
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                    </select>
+                </div>
+                <button class="search-btn" aria-label="Search"><i class="fas fa-search"></i></button>
+                <button class="cart-btn" aria-label="Shopping Cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
+                <button class="user-btn" aria-label="User Account"><i class="fas fa-user"></i></button>
+                <button class="notification-btn" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-count">3</span>
+                </button>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section - Home & Discovery -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Welcome to SugarPetals</h1>
+            <p>Discover artisan bakery delights crafted with love</p>
+            <div class="hero-buttons">
+                <button class="btn-primary">Explore Now</button>
+                <button class="btn-secondary">View Menu</button>
+            </div>
+            <div class="promotions-banner">
+                <span class="promo-badge">🎉 Special Offer: Get 20% off on first order!</span>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="cake-icon"><i class="fas fa-birthday-cake"></i></div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section id="search" class="search-section">
+        <div class="search-container">
+            <input type="text" placeholder="Search for breads, cakes, pastries..." aria-label="Search products">
+            <button><i class="fas fa-search"></i></button>
+        </div>
+        <div class="search-filters">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Cakes</button>
+            <button class="filter-btn">Breads</button>
+            <button class="filter-btn">Pastries</button>
+            <button class="filter-btn">Cookies</button>
+        </div>
+    </section>
+
+    <!-- Product Browsing & Shopping Cart -->
+    <section id="products" class="products-section">
+        <h2>Our Products</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop" alt="Chocolate Cake" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23fce4ec%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23e91e63%22 font-size=%2240%22>🎂</text></svg>'">
+                    <button class="wishlist-btn" aria-label="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3>Chocolate Cake</h3>
+                    <p class="product-desc">Rich chocolate layered with cream</p>
+                    <div class="product-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>(128)</span>
+                    </div>
+                    <div class="product-price">$24.99</div>
+                    <div class="product-actions">
+                        <button class="add-to-cart">Add to Cart</button>
+                        <button class="customize-btn">Customize</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&h=300&fit=crop" alt="Artisan Bread" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23fff8e1%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23ff9800%22 font-size=%2240%22>🍞</text></svg>'">
+                    <button class="wishlist-btn" aria-label="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3>Artisan Bread</h3>
+                    <p class="product-desc">Freshly baked sourdough</p>
+                    <div class="product-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span>(95)</span>
+                    </div>
+                    <div class="product-price">$8.99</div>
+                    <div class="product-actions">
+                        <button class="add-to-cart">Add to Cart</button>
+                        <button class="customize-btn">Customize</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=300&fit=crop" alt="Butter Cookies" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23fff3e0%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23ff9800%22 font-size=%2240%22>🍪</text></svg>'">
+                    <button class="wishlist-btn" aria-label="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3>Butter Cookies</h3>
+                    <p class="product-desc">Delicate butter cookies box</p>
+                    <div class="product-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <span>(67)</span>
+                    </div>
+                    <div class="product-price">$12.99</div>
+                    <div class="product-actions">
+                        <button class="add-to-cart">Add to Cart</button>
+                        <button class="customize-btn">Customize</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=400&h=300&fit=crop" alt="Cupcakes" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23fce4ec%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23e91e63%22 font-size=%2240%22>🧁</text></svg>'">
+                    <button class="wishlist-btn" aria-label="Add to Wishlist"><i class="fas fa-heart"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3>Cupcakes</h3>
+                    <p class="product-desc">Assorted flavored cupcakes</p>
+                    <div class="product-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span>(203)</span>
+                    </div>
+                    <div class="product-price">$15.99</div>
+                    <div class="product-actions">
+                        <button class="add-to-cart">Add to Cart</button>
+                        <button class="customize-btn">Customize</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shopping Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart" aria-label="Close Cart"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="cart-items">
+            <p class="empty-cart">Your cart is empty</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span class="total-amount">$0.00</span>
+            </div>
+            <button class="checkout-btn">Proceed to Checkout</button>
+            <button class="continue-shopping">Continue Shopping</button>
+        </div>
+    </div>
+
+    <!-- User Account Sidebar -->
+    <div class="account-sidebar" id="accountSidebar">
+        <div class="account-header">
+            <h3>My Account</h3>
+            <button class="close-account" aria-label="Close Account"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="account-content">
+            <div class="account-tabs">
+                <button class="account-tab active" data-tab="profile">Profile</button>
+                <button class="account-tab" data-tab="orders">Orders</button>
+                <button class="account-tab" data-tab="loyalty">Loyalty Points</button>
+                <button class="account-tab" data-tab="wishlist">Wishlist</button>
+            </div>
+            <div class="account-panel" id="profile">
+                <div class="profile-info">
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                    <h4>Guest User</h4>
+                    <p>guest@sugarpetals.com</p>
+                    <button class="login-btn">Login / Register</button>
+                </div>
+            </div>
+            <div class="account-panel" id="orders">
+                <h4>Order History</h4>
+                <div class="order-item">
+                    <span class="order-id">Order #12345</span>
+                    <span class="order-status delivered">Delivered</span>
+                    <span class="order-date">Dec 15, 2024</span>
+                </div>
+                <div class="order-item">
+                    <span class="order-id">Order #12344</span>
+                    <span class="order-status processing">Processing</span>
+                    <span class="order-date">Dec 10, 2024</span>
+                </div>
+                <button class="view-all-orders">View All Orders</button>
+            </div>
+            <div class="account-panel" id="loyalty">
+                <div class="loyalty-card">
+                    <h4>Loyalty Points</h4>
+                    <div class="points-balance">1,250</div>
+                    <p>Points Available</p>
+                    <div class="points-progress">
+                        <div class="progress-bar" style="width: 65%"></div>
+                    </div>
+                    <p class="points-next">750 points to Gold Status</p>
+                    <button class="redeem-btn">Redeem Points</button>
+                </div>
+            </div>
+            <div class="account-panel" id="wishlist">
+                <h4>My Wishlist</h4>
+                <p>No items in wishlist</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div class="notifications-panel" id="notificationsPanel">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button class="mark-read">Mark all as read</button>
+        </div>
+        <div class="notifications-list">
+            <div class="notification-item unread">
+                <i class="fas fa-tag"></i>
+                <div class="notification-content">
+                    <p>Flash Sale! 50% off on all cakes today</p>
+                    <span class="notification-time">2 hours ago</span>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <i class="fas fa-shopping-bag"></i>
+                <div class="notification-content">
+                    <p>Your order #12345 has been delivered</p>
+                    <span class="notification-time">1 day ago</span>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <i class="fas fa-gift"></i>
+                <div class="notification-content">
+                    <p>You've earned 100 loyalty points!</p>
+                    <span class="notification-time">2 days ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section - All 41 Features -->
+    <section id="features" class="features-section">
+        <h2>All Features</h2>
+        
+        <!-- Customer-Facing Features -->
+        <div class="feature-category">
+            <h3 class="category-title">Customer-Facing Features</h3>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-home"></i>
+                    <h4>Home & Discovery</h4>
+                    <p>Explore our bakery and discover delicious treats</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-search"></i>
+                    <h4>Product Browsing & Search</h4>
+                    <p>Find products easily with advanced search filters</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>Shopping Cart</h4>
+                    <p>Add items and manage your cart effortlessly</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-credit-card"></i>
+                    <h4>Checkout Process</h4>
+                    <p>Secure and fast checkout experience</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-box"></i>
+                    <h4>Order Management</h4>
+                    <p>Track and manage your orders</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-user-circle"></i>
+                    <h4>User Account & Profile</h4>
+                    <p>Manage your account and preferences</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-award"></i>
+                    <h4>Loyalty & Rewards</h4>
+                    <p>Earn points and unlock exclusive rewards</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-palette"></i>
+                    <h4>Custom Orders</h4>
+                    <p>Request personalized bakery items</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-star"></i>
+                    <h4>Reviews & Ratings</h4>
+                    <p>Share your feedback and read reviews</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-percentage"></i>
+                    <h4>Promotions & Offers</h4>
+                    <p>Discover deals and special offers</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-bell"></i>
+                    <h4>Notifications</h4>
+                    <p>Stay updated with order and promo alerts</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-headset"></i>
+                    <h4>Customer Support</h4>
+                    <p>Get help via chat, email, or phone</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-share-alt"></i>
+                    <h4>Social & Sharing</h4>
+                    <p>Share favorites on social media</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-heart"></i>
+                    <h4>Wishlist / Favorites</h4>
+                    <p>Save items for later</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h4>Location & Store Info</h4>
+                    <p>Find nearby stores and hours</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin/Bakery Features -->
+        <div class="feature-category">
+            <h3 class="category-title">Admin/Bakery Features</h3>
+            <div class="features-grid">
+                <div class="feature-card admin">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Dashboard & Analytics</h4>
+                    <p>Real-time business insights</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-bread-slice"></i>
+                    <h4>Product Management</h4>
+                    <p>Manage inventory and products</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h4>Order Management</h4>
+                    <p>Process and track orders</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-users"></i>
+                    <h4>Customer Management</h4>
+                    <p>Manage customer relationships</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-dollar-sign"></i>
+                    <h4>Payment & Finance</h4>
+                    <p>Track payments and revenue</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-bullhorn"></i>
+                    <h4>Marketing & Promotions</h4>
+                    <p>Create campaigns and offers</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-truck"></i>
+                    <h4>Delivery Management</h4>
+                    <p>Handle deliveries efficiently</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-file-alt"></i>
+                    <h4>Content Management</h4>
+                    <p>Manage website content</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-user-tie"></i>
+                    <h4>Staff Management</h4>
+                    <p>Manage team and schedules</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-file-export"></i>
+                    <h4>Reports & Exports</h4>
+                    <p>Generate business reports</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-cogs"></i>
+                    <h4>Settings & Configuration</h4>
+                    <p>System configuration</p>
+                </div>
+                <div class="feature-card admin">
+                    <i class="fas fa-shield-alt"></i>
+                    <h4>Security Features</h4>
+                    <p>Protect your business data</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Features -->
+        <div class="feature-category">
+            <h3 class="category-title">Technical Features</h3>
+            <div class="features-grid">
+                <div class="feature-card tech">
+                    <i class="fas fa-layer-group"></i>
+                    <h4>Platform Features</h4>
+                    <p>Modern scalable platform</p>
+                </div>
+                <div class="feature-card tech">
+                    <i class="fas fa-language"></i>
+                    <h4>Multi-language Support</h4>
+                    <p>Available in multiple languages</p>
+                </div>
+                <div class="feature-card tech">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h4>Multi-currency Support</h4>
+                    <p>Multiple currency options</p>
+                </div>
+                <div class="feature-card tech">
+                    <i class="fas fa-universal-access"></i>
+                    <h4>Accessibility</h4>
+                    <p>WCAG compliant design</p>
+                </div>
+                <div class="feature-card tech">
+                    <i class="fas fa-bolt"></i>
+                    <h4>Performance</h4>
+                    <p>Fast loading and responsive</p>
+                </div>
+                <div class="feature-card tech">
+                    <i class="fas fa-searchengin"></i>
+                    <h4>SEO & Marketing</h4>
+                    <p>Search engine optimized</p>
+                </div>
+                <div class="feature-card tech">
+                    <i class="fas fa-plug"></i>
+                    <h4>Integrations</h4>
+                    <p>Connect with third-party services</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unique Bakery-Specific Features -->
+        <div class="feature-category">
+            <h3 class="category-title">Bakery-Specific Features</h3>
+            <div class="features-grid">
+                <div class="feature-card bakery">
+                    <i class="fas fa-book-open"></i>
+                    <h4>Recipe Sharing</h4>
+                    <p>Share and discover recipes</p>
+                </div>
+                <div class="feature-card bakery">
+                    <i class="fas fa-images"></i>
+                    <h4>Photo Gallery</h4>
+                    <p>Beautiful bakery gallery</p>
+                </div>
+                <div class="feature-card bakery">
+                    <i class="fas fa-video"></i>
+                    <h4>Video Content</h4>
+                    <p>Baking tutorials and videos</p>
+                </div>
+                <div class="feature-card bakery">
+                    <i class="fas fa-calendar-check"></i>
+                    <h4>Event Catering</h4>
+                    <p>Catering for events</p>
+                </div>
+                <div class="feature-card bakery">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h4>Baking Classes</h4>
+                    <p>Learn to bake with experts</p>
+                </div>
+                <div class="feature-card bakery">
+                    <i class="fas fa-gift"></i>
+                    <h4>Gift Services</h4>
+                    <p>Gift baskets and packaging</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics & Insights -->
+        <div class="feature-category">
+            <h3 class="category-title">Analytics & Insights</h3>
+            <div class="features-grid">
+                <div class="feature-card analytics">
+                    <i class="fas fa-brain"></i>
+                    <h4>Business Intelligence</h4>
+                    <p>AI-powered insights and analytics</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Special Features Section -->
+    <section id="bakery" class="special-features">
+        <h2>Special Bakery Features</h2>
+        <div class="special-grid">
+            <!-- Recipe Sharing -->
+            <div class="special-card">
+                <div class="special-icon"><i class="fas fa-book-open"></i></div>
+                <h3>Recipe Sharing</h3>
+                <p>Share your favorite recipes with our community</p>
+                <button class="explore-btn">Explore Recipes</button>
+            </div>
+            <!-- Photo Gallery -->
+            <div class="special-card">
+                <div class="special-icon"><i class="fas fa-images"></i></div>
+                <h3>Photo Gallery</h3>
+                <p>Browse beautiful photos of our creations</p>
+                <button class="explore-btn">View Gallery</button>
+            </div>
+            <!-- Video Content -->
+            <div class="special-card">
+                <div class="special-icon"><i class="fas fa-video"></i></div>
+                <h3>Video Content</h3>
+                <p>Watch baking tutorials and behind-the-scenes</p>
+                <button class="explore-btn">Watch Videos</button>
+            </div>
+            <!-- Event Catering -->
+            <div class="special-card">
+                <div class="special-icon"><i class="fas fa-calendar-check"></i></div>
+                <h3>Event Catering</h3>
+                <p>Book catering for weddings, parties & events</p>
+                <button class="explore-btn">Book Now</button>
+            </div>
+            <!-- Baking Classes -->
+            <div class="special-card">
+                <div class="special-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <h3>Baking Classes</h3>
+                <p>Learn from professional bakers</p>
+                <button class="explore-btn">Join Classes</button>
+            </div>
+            <!-- Gift Services -->
+            <div class="special-card">
+                <div class="special-icon"><i class="fas fa-gift"></i></div>
+                <h3>Gift Services</h3>
+                <p>Perfect gifts for every occasion</p>
+                <button class="explore-btn">Send Gift</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support Section -->
+    <section id="support" class="support-section">
+        <h2>Customer Support</h2>
+        <div class="support-options">
+            <div class="support-card">
+                <i class="fas fa-comments"></i>
+                <h3>Live Chat</h3>
+                <p>Chat with us in real-time</p>
+                <button>Start Chat</button>
+            </div>
+            <div class="support-card">
+                <i class="fas fa-envelope"></i>
+                <h3>Email Support</h3>
+                <p>Get response within 24 hours</p>
+                <button>Send Email</button>
+            </div>
+            <div class="support-card">
+                <i class="fas fa-phone-alt"></i>
+                <h3>Phone Support</h3>
+                <p>Call us: 1-800-SWEET</p>
+                <button>Call Now</button>
+            </div>
+            <div class="support-card">
+                <i class="fas fa-question-circle"></i>
+                <h3>FAQ</h3>
+                <p>Find answers to common questions</p>
+                <button>View FAQ</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section class="location-section">
+        <h2>Find Our Stores</h2>
+        <div class="location-info">
+            <div class="store-card">
+                <i class="fas fa-store"></i>
+                <h3>Downtown Bakery</h3>
+                <p>123 Main Street, City Center</p>
+                <p>Open: 7AM - 9PM</p>
+                <button>Get Directions</button>
+            </div>
+            <div class="store-card">
+                <i class="fas fa-store"></i>
+                <h3>Westside Branch</h3>
+                <p>456 West Avenue</p>
+                <p>Open: 8AM - 8PM</p>
+                <button>Get Directions</button>
+            </div>
+            <div class="store-card">
+                <i class="fas fa-store"></i>
+                <h3>Airport Location</h3>
+                <p>Terminal 2, Airport Road</p>
+                <p>Open: 6AM - 10PM</p>
+                <button>Get Directions</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Sharing -->
+    <section class="social-section">
+        <h2>Follow Us</h2>
+        <div class="social-links">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>SugarPetals</h4>
+                <p>Premium bakery offering artisan breads, cakes, and pastries since 1995.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#products">Products</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#bakery">Bakery</a></li>
+                    <li><a href="#support">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Customer Service</h4>
+                <ul>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Bakery Street</p>
+                <p><i class="fas fa-phone"></i> 1-800-SWEET</p>
+                <p><i class="fas fa-envelope"></i> hello@sugarpetals.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 SugarPetals. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Overlay for modals -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Checkout Modal -->
+    <div class="checkout-modal" id="checkoutModal">
+        <div class="modal-content">
+            <button class="close-modal" aria-label="Close"><i class="fas fa-times"></i></button>
+            <h2>Checkout</h2>
+            <form class="checkout-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="address">Delivery Address</label>
+                    <input type="text" id="address" placeholder="Delivery address">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-options">
+                        <label><input type="radio" name="payment" checked> Credit Card</label>
+                        <label><input type="radio" name="payment"> PayPal</label>
+                        <label><input type="radio" name="payment"> Cash on Delivery</label>
+                    </div>
+                </div>
+                <button type="submit" class="place-order-btn">Place Order</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
