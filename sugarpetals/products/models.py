@@ -1,4 +1,5 @@
 from django.db import models
+from stores.models import Store
 
 # Create your models here.
 class Category(models.Model):
@@ -19,6 +20,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='products')
 
     def __str__(self):
         return self.name
