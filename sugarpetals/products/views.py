@@ -55,3 +55,40 @@ class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+
+class ProductListView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = Product.objects.filter(is_available=True)
+
+        # filter by store
+        store_id = self.request.query_params.get('store')
+        if store_id:
+            queryset = queryset.filter(store_id=store_id)
+
+        # filter by category
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+
+        # filter by city (via store)
+        city = self.request.query_params.get('city')
+        if city:
+            queryset = queryset.filter(store__city__icontains=city)
+
+        # search by name
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+
+        # filter by price range
+        min_price = self.request.query_params.get('min_price')
+        max_price = self.request.query_params.get('max_price')
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        return queryset
