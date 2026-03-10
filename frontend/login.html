@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — SugarPetals</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; background: var(--cream); }
+    .auth-wrapper {
+      flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;
+      background: linear-gradient(160deg, var(--cream) 0%, var(--cream-dark) 100%);
+    }
+    .auth-card {
+      background: var(--warm-white); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg); width: 100%; max-width: 420px; overflow: hidden;
+    }
+    .auth-header {
+      background: linear-gradient(135deg, var(--espresso), var(--brown-dark));
+      padding: 2rem; text-align: center;
+    }
+    .auth-header .brand { font-family: var(--font-heading); font-size: 1.8rem; color: var(--cream); }
+    .auth-header .brand span { font-size: 2rem; }
+    .auth-header p { color: var(--brown-light); font-size: 0.9rem; margin-top: 6px; }
+    .auth-body { padding: 2rem; }
+    .auth-footer { text-align: center; padding: 1rem 2rem 1.5rem; color: var(--brown-light); font-size: 0.9rem; }
+    .auth-footer a { color: var(--brown); font-weight: 600; }
+    .auth-footer a:hover { color: var(--orange); }
+    .divider-text {
+      text-align: center; position: relative; margin: 1.2rem 0; color: var(--brown-light); font-size: 0.85rem;
+    }
+    .divider-text::before, .divider-text::after {
+      content: ""; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--cream-dark);
+    }
+    .divider-text::before { left: 0; }
+    .divider-text::after  { right: 0; }
+    .error-box {
+      background: #fdecea; border: 1px solid #f5c6c6; color: var(--red);
+      padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.88rem;
+      margin-bottom: 1rem; display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+    <div class="navbar-links">
+      <a href="index.html">Browse</a>
+      <a href="register.html">Register</a>
+    </div>
+  </nav>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand"><span>🍰</span> SugarPetals</div>
+        <p>Welcome back! Sign in to continue.</p>
+      </div>
+      <div class="auth-body">
+        <div class="error-box" id="error-box"></div>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" class="form-control" placeholder="Enter your username" required autocomplete="username" />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg" id="login-btn">Sign In</button>
+        </form>
+        <div class="divider-text">or</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <p style="text-align:center; font-size:0.8rem; color:var(--brown-light); margin-bottom:4px;">Quick test login</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="quickLogin('customer1','test1234')">👤 Customer</button>
+            <button class="btn btn-outline btn-sm" onclick="quickLogin('baker1','test1234')">🏪 Seller</button>
+            <button class="btn btn-outline btn-sm" onclick="quickLogin('agent1','test1234')">🚴 Delivery</button>
+          </div>
+        </div>
+      </div>
+      <div class="auth-footer">
+        Don't have an account? <a href="register.html">Create one</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Redirect if already logged in
+    const _u = getUser();
+    if (_u && localStorage.getItem("access_token")) redirectByRole(_u);
+
+    const form = document.getElementById("login-form");
+    const errBox = document.getElementById("error-box");
+    const loginBtn = document.getElementById("login-btn");
+
+    function showError(msg) {
+      errBox.textContent = msg;
+      errBox.style.display = "block";
+    }
+    function hideError() { errBox.style.display = "none"; }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      setLoading(loginBtn, true);
+      try {
+        const user = await Auth.login(username, password);
+        toast("Welcome back, " + user.username + "! 🎉");
+        setTimeout(() => {
+          const redirect = sessionStorage.getItem("redirect_after_login");
+          sessionStorage.removeItem("redirect_after_login");
+          if (redirect) window.location.href = redirect;
+          else redirectByRole(user);
+        }, 600);
+      } catch (err) {
+        showError(parseError(err));
+        setLoading(loginBtn, false);
+      }
+    });
+
+    async function quickLogin(username, password) {
+      hideError();
+      document.getElementById("username").value = username;
+      document.getElementById("password").value = password;
+      setLoading(loginBtn, true);
+      try {
+        const user = await Auth.login(username, password);
+        toast("Logged in as " + user.username);
+        setTimeout(() => redirectByRole(user), 600);
+      } catch (err) {
+        showError(parseError(err));
+        setLoading(loginBtn, false);
+      }
+    }
+
+    function promptAdmin() {
+      const u = prompt("Enter admin username:");
+      const p = prompt("Enter admin password:");
+      if (u && p) quickLogin(u, p);
+    }
+  </script>
+</body>
+</html>

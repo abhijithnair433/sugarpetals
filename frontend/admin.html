@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — SugarPetals</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .admin-action-btn { padding:5px 12px; border:2px solid; border-radius:var(--radius-sm); font-size:0.8rem; font-weight:700; cursor:pointer; transition:all var(--transition); background:transparent; }
+    .admin-action-btn.approve  { border-color:var(--green); color:var(--green); }
+    .admin-action-btn.approve:hover  { background:var(--green); color:#fff; }
+    .admin-action-btn.suspend  { border-color:var(--red); color:var(--red); }
+    .admin-action-btn.suspend:hover  { background:var(--red); color:#fff; }
+    .admin-action-btn.pending  { border-color:var(--yellow); color:var(--yellow); }
+    .admin-action-btn.pending:hover  { background:var(--yellow); color:#fff; }
+    .commission-input { width:80px; padding:5px 8px; border:2px solid var(--cream-dark); border-radius:var(--radius-sm); font-size:0.85rem; text-align:center; }
+    .commission-input:focus { outline:none; border-color:var(--brown-light); }
+    .order-expand-row td { padding:0 !important; background:var(--cream); }
+    .order-expand-inner { padding:1rem 1.4rem; display:none; }
+    .order-expand-inner.open { display:block; }
+    .assign-area { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .agent-select { padding:6px 10px; border:2px solid var(--cream-dark); border-radius:var(--radius-sm); font-size:0.85rem; background:var(--warm-white); color:var(--brown-dark); min-width:160px; }
+    .overview-hero { background:linear-gradient(135deg,var(--espresso),var(--brown-dark)); border-radius:var(--radius-lg); padding:2rem; color:var(--cream); margin-bottom:2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+    .overview-hero h2 { color:var(--cream); margin:0; }
+    .overview-hero p  { color:var(--brown-light); margin:4px 0 0; }
+    .admin-tabs { display:flex; gap:0; border-bottom:2px solid var(--cream-dark); margin-bottom:1.5rem; overflow-x:auto; }
+    .admin-tab { padding:10px 20px; background:none; border:none; font-family:var(--font-main); font-size:0.9rem; font-weight:600; color:var(--brown-light); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:all var(--transition); }
+    .admin-tab.active { color:var(--brown-dark); border-bottom-color:var(--brown); }
+    .filter-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:1rem; }
+    .filter-row select, .filter-row input { padding:7px 12px; border:2px solid var(--cream-dark); border-radius:var(--radius-sm); font-size:0.85rem; background:var(--warm-white); color:var(--brown-dark); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+  <div class="navbar-links">
+    <a href="index.html">View Store</a>
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Admin Menu</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="active" onclick="showTab('overview',this)"><span class="nav-icon">📊</span> Overview</a>
+      <a href="#" onclick="showTab('stores',this)"><span class="nav-icon">🏪</span> Stores</a>
+      <a href="#" onclick="showTab('orders',this)"><span class="nav-icon">📦</span> All Orders</a>
+      <a href="#" onclick="showTab('deliveries',this)"><span class="nav-icon">🚴</span> Deliveries</a>
+      <a href="#" onclick="showTab('agents',this)"><span class="nav-icon">👥</span> Agents</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- ── OVERVIEW TAB ── -->
+    <div id="tab-overview">
+      <div class="overview-hero">
+        <div>
+          <h2>Admin Dashboard</h2>
+          <p>SugarPetals platform management</p>
+        </div>
+        <div style="font-size:2.5rem;">🛡</div>
+      </div>
+      <div class="stats-grid" id="admin-stats">
+        <div class="stat-card"><div class="stat-value" id="st-stores">—</div><div class="stat-label">Total Stores</div></div>
+        <div class="stat-card orange"><div class="stat-value" id="st-pending">—</div><div class="stat-label">Pending Stores</div></div>
+        <div class="stat-card green"><div class="stat-value" id="st-orders">—</div><div class="stat-label">Total Orders</div></div>
+        <div class="stat-card blue"><div class="stat-value" id="st-deliveries">—</div><div class="stat-label">Active Deliveries</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h4>Pending Store Approvals</h4>
+            <button class="btn btn-outline btn-sm" onclick="showTab('stores')">View All</button>
+          </div>
+          <div class="card-body" id="pending-stores-list"><p style="color:var(--brown-light);">Loading…</p></div>
+        </div>
+        <div class="card">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h4>Recent Orders</h4>
+            <button class="btn btn-outline btn-sm" onclick="showTab('orders')">View All</button>
+          </div>
+          <div class="card-body" id="recent-orders-preview"><p style="color:var(--brown-light);">Loading…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STORES TAB ── -->
+    <div id="tab-stores" style="display:none;">
+      <div class="section-header">
+        <div><h2 class="page-title">🏪 All Stores</h2><p class="page-subtitle">Approve, suspend or update commission rates.</p></div>
+      </div>
+      <div class="filter-row">
+        <select id="store-status-filter" onchange="renderStores()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="suspended">Suspended</option>
+        </select>
+        <input type="text" id="store-search" placeholder="Search store name…" oninput="renderStores()" style="flex:1;max-width:280px;" />
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Store</th><th>Owner</th><th>City</th><th>Status</th><th>Commission %</th><th>Actions</th></tr></thead>
+          <tbody id="stores-tbody"></tbody>
+        </table>
+      </div>
+      <div id="stores-empty" class="empty-state hidden"><div class="empty-icon">🏪</div><p>No stores found.</p></div>
+    </div>
+
+    <!-- ── ORDERS TAB ── -->
+    <div id="tab-orders" style="display:none;">
+      <h2 class="page-title">📦 All Orders</h2>
+      <p class="page-subtitle">Platform-wide order history.</p>
+      <div class="filter-row">
+        <select id="order-status-filter" onchange="renderOrders()">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="baking">Baking</option>
+          <option value="out_for_delivery">Out for Delivery</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Order #</th><th>Customer</th><th>Store</th><th>Total</th><th>Commission</th><th>Status</th><th>Date</th><th>Details</th></tr></thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+      <div id="admin-orders-empty" class="empty-state hidden"><div class="empty-icon">📦</div><p>No orders found.</p></div>
+    </div>
+
+    <!-- ── DELIVERIES TAB ── -->
+    <div id="tab-deliveries" style="display:none;">
+      <h2 class="page-title">🚴 Deliveries</h2>
+      <p class="page-subtitle">Assign agents to orders that are out for delivery.</p>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchDeliveryTab('unassigned',this)">Needs Assignment</button>
+        <button class="admin-tab" onclick="switchDeliveryTab('all',this)">All Deliveries</button>
+      </div>
+      <div id="unassigned-area">
+        <div id="unassigned-list"></div>
+        <div id="unassigned-empty" class="empty-state hidden"><div class="empty-icon">✅</div><p>All orders have been assigned!</p></div>
+      </div>
+      <div id="all-deliveries-area" style="display:none;">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Order #</th><th>Agent</th><th>Customer</th><th>Store</th><th>Status</th><th>Picked Up</th><th>Delivered</th></tr></thead>
+            <tbody id="all-deliveries-tbody"></tbody>
+          </table>
+        </div>
+        <div id="all-deliveries-empty" class="empty-state hidden"><div class="empty-icon">🚴</div><p>No deliveries yet.</p></div>
+      </div>
+    </div>
+
+    <!-- ── AGENTS TAB ── -->
+    <div id="tab-agents" style="display:none;">
+      <h2 class="page-title">👥 Delivery Agents</h2>
+      <p class="page-subtitle">All registered delivery agents.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Agent ID</th><th>Username</th><th>City</th><th>Vehicle</th><th>Available</th></tr></thead>
+          <tbody id="agents-tbody"></tbody>
+        </table>
+      </div>
+      <div id="agents-empty" class="empty-state hidden"><div class="empty-icon">👥</div><p>No agents registered.</p></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = requireAuth(["admin"]);
+  if (!user) throw new Error();
+
+  let allStores=[], allOrders=[], allDeliveries=[], allAgents=[];
+
+  // ── Tab switch ─────────────────────────────────────────────
+  function showTab(name, el) {
+    if (el) { event.preventDefault(); document.querySelectorAll(".sidebar-nav a").forEach(a=>a.classList.remove("active")); el.classList.add("active"); }
+    ["overview","stores","orders","deliveries","agents"].forEach(t => document.getElementById("tab-"+t).style.display = t===name?"block":"none");
+    if (name==="overview")   loadOverview();
+    if (name==="stores")     loadStores();
+    if (name==="orders")     loadOrders();
+    if (name==="deliveries") loadDeliveries();
+    if (name==="agents")     loadAgents();
+  }
+
+  document.addEventListener("DOMContentLoaded", loadOverview);
+
+  // ── OVERVIEW ───────────────────────────────────────────────
+  async function loadOverview() {
+    try {
+      const [storesData, ordersData, deliveriesData] = await Promise.all([
+        Stores.adminAll(), Orders.adminAll(), Delivery.adminAll()
+      ]);
+      allStores     = storesData.results||storesData;
+      allOrders     = ordersData.results||ordersData;
+      allDeliveries = deliveriesData.results||deliveriesData;
+
+      const pendingStores  = allStores.filter(s=>s.status==="pending");
+      const activeDelivs   = allDeliveries.filter(d=>d.status!=="delivered");
+      document.getElementById("st-stores").textContent     = allStores.length;
+      document.getElementById("st-pending").textContent    = pendingStores.length;
+      document.getElementById("st-orders").textContent     = allOrders.length;
+      document.getElementById("st-deliveries").textContent = activeDelivs.length;
+
+      // Pending stores list
+      const psl = document.getElementById("pending-stores-list");
+      if (!pendingStores.length) psl.innerHTML = `<p style="color:var(--brown-light);">No pending stores 🎉</p>`;
+      else psl.innerHTML = pendingStores.slice(0,5).map(s=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-dark);">
+          <div><div style="font-weight:600;font-size:0.9rem;">🏪 ${s.name}</div><div style="font-size:0.78rem;color:var(--brown-light);">${s.owner} · ${s.city||"—"}</div></div>
+          <button class="admin-action-btn approve" onclick="updateStoreStatus(${s.id},'approved',this)">Approve</button>
+        </div>`).join("");
+
+      // Recent orders
+      const rop = document.getElementById("recent-orders-preview");
+      rop.innerHTML = allOrders.slice(0,5).map(o=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-dark);">
+          <div><div style="font-weight:600;font-size:0.9rem;">Order #${o.id} — ${o.store_name}</div><div style="font-size:0.78rem;color:var(--brown-light);">${o.customer_name} · ${fmtDate(o.created_at)}</div></div>
+          <div style="display:flex;gap:8px;align-items:center;"><span style="font-weight:700;color:var(--orange);">₹${o.total_price}</span>${statusBadge(o.status)}</div>
+        </div>`).join("") || `<p style="color:var(--brown-light);">No orders yet.</p>`;
+    } catch(e) { toast("Failed to load overview","error"); }
+  }
+
+  // ── STORES ─────────────────────────────────────────────────
+  async function loadStores() {
+    try {
+      const d  = await Stores.adminAll();
+      allStores = d.results||d;
+      renderStores();
+    } catch { toast("Failed to load stores","error"); }
+  }
+
+  function renderStores() {
+    const statusF = document.getElementById("store-status-filter").value;
+    const searchF = (document.getElementById("store-search").value||"").toLowerCase();
+    let filtered  = allStores;
+    if (statusF) filtered = filtered.filter(s=>s.status===statusF);
+    if (searchF) filtered = filtered.filter(s=>s.name.toLowerCase().includes(searchF));
+    const tbody = document.getElementById("stores-tbody");
+    tbody.innerHTML = "";
+    if (!filtered.length) { document.getElementById("stores-empty").classList.remove("hidden"); return; }
+    document.getElementById("stores-empty").classList.add("hidden");
+    filtered.forEach(s => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><div style="font-weight:600;">${s.name}</div><div style="font-size:0.78rem;color:var(--brown-light);">${s.description?s.description.substring(0,40)+"…":""}</div></td>
+        <td>${s.owner}</td>
+        <td>${s.city||"—"}</td>
+        <td>${statusBadge(s.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="number" class="commission-input" value="${s.commission_rate}" id="comm-${s.id}" min="0" max="100" step="0.5" />
+            <button class="btn btn-outline btn-sm" onclick="updateCommission(${s.id})">Set</button>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${s.status!=="approved"  ? `<button class="admin-action-btn approve" onclick="updateStoreStatus(${s.id},'approved',this)">Approve</button>`:""}
+            ${s.status!=="suspended" ? `<button class="admin-action-btn suspend" onclick="updateStoreStatus(${s.id},'suspended',this)">Suspend</button>`:""}
+            ${s.status!=="pending"   ? `<button class="admin-action-btn pending" onclick="updateStoreStatus(${s.id},'pending',this)">Set Pending</button>`:""}
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function updateStoreStatus(id, status, btn) {
+    const origText = btn.textContent;
+    btn.textContent="…"; btn.disabled=true;
+    try {
+      await Stores.adminUpdateStatus(id, {status});
+      toast(`Store ${status} ✓`);
+      const s = allStores.find(s=>s.id===id);
+      if (s) s.status = status;
+      renderStores();
+      // refresh overview stats
+      document.getElementById("st-pending").textContent = allStores.filter(s=>s.status==="pending").length;
+    } catch(e){ toast(parseError(e),"error"); btn.textContent=origText; btn.disabled=false; }
+  }
+
+  async function updateCommission(id) {
+    const val = parseFloat(document.getElementById("comm-"+id).value);
+    if (isNaN(val)||val<0||val>100) { toast("Invalid commission rate","error"); return; }
+    try {
+      await Stores.adminUpdateStatus(id, {commission_rate:val});
+      toast("Commission updated to "+val+"%");
+      const s = allStores.find(s=>s.id===id);
+      if (s) s.commission_rate = val;
+    } catch(e){ toast(parseError(e),"error"); }
+  }
+
+  // ── ORDERS ─────────────────────────────────────────────────
+  async function loadOrders() {
+    try {
+      const d  = await Orders.adminAll();
+      allOrders = d.results||d;
+      renderOrders();
+    } catch { toast("Failed to load orders","error"); }
+  }
+
+  function renderOrders() {
+    const statusF = document.getElementById("order-status-filter").value;
+    const filtered = statusF ? allOrders.filter(o=>o.status===statusF) : allOrders;
+    const tbody    = document.getElementById("orders-tbody");
+    tbody.innerHTML = "";
+    if (!filtered.length) { document.getElementById("admin-orders-empty").classList.remove("hidden"); return; }
+    document.getElementById("admin-orders-empty").classList.add("hidden");
+    filtered.forEach(o => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td style="font-weight:700;">#${o.id}</td>
+        <td>${o.customer_name}</td>
+        <td>${o.store_name}</td>
+        <td style="font-weight:700;color:var(--orange);">₹${o.total_price}</td>
+        <td style="color:var(--red);">₹${o.platform_commission}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td style="font-size:0.82rem;">${fmtDate(o.created_at)}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="toggleAdminOrderExpand(this,${o.id})">Details</button></td>`;
+      const expandTr = document.createElement("tr");
+      expandTr.className = "order-expand-row";
+      expandTr.innerHTML = `<td colspan="8"><div class="order-expand-inner" id="aexp-${o.id}">
+        ${o.items.map(it=>`<div style="padding:4px 0;font-size:0.88rem;border-bottom:1px solid var(--cream-dark);">${it.product.name} × ${it.quantity} — ₹${it.subtotal}</div>`).join("")}
+        <div style="margin-top:8px;font-size:0.82rem;color:var(--brown-light);">Seller earns: ₹${o.seller_earnings} · Commission: ₹${o.platform_commission}</div>
+      </div></td>`;
+      tbody.appendChild(tr);
+      tbody.appendChild(expandTr);
+    });
+  }
+
+  function toggleAdminOrderExpand(btn, id) {
+    const el = document.getElementById("aexp-"+id);
+    el.classList.toggle("open");
+    btn.textContent = el.classList.contains("open") ? "Hide" : "Details";
+  }
+
+  // ── DELIVERIES ─────────────────────────────────────────────
+  async function loadDeliveries() {
+    try {
+      const [delivData, agentData, orderData] = await Promise.all([
+        Delivery.adminAll(), Delivery.adminAgents(), Orders.adminAll()
+      ]);
+      allDeliveries = delivData.results||delivData;
+      allAgents     = agentData.results||agentData;
+      allOrders     = orderData.results||orderData;
+      renderUnassigned();
+      renderAllDeliveries();
+    } catch { toast("Failed to load deliveries","error"); }
+  }
+
+  function switchDeliveryTab(tab, btn) {
+    document.querySelectorAll(".admin-tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("unassigned-area").style.display    = tab==="unassigned"?"block":"none";
+    document.getElementById("all-deliveries-area").style.display = tab==="all"?"block":"none";
+  }
+
+  function renderUnassigned() {
+    // Orders that are out_for_delivery but have no delivery record
+    const deliveredOrderIds = allDeliveries.map(d=>d.order_id);
+    const unassigned = allOrders.filter(o=>o.status==="out_for_delivery" && !deliveredOrderIds.includes(o.id));
+    const box = document.getElementById("unassigned-list");
+    box.innerHTML = "";
+    if (!unassigned.length) { document.getElementById("unassigned-empty").classList.remove("hidden"); return; }
+    document.getElementById("unassigned-empty").classList.add("hidden");
+    unassigned.forEach(o => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.style.marginBottom = "1rem";
+      const availableAgents = allAgents.filter(a=>a.is_available);
+      div.innerHTML = `
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+            <div>
+              <div style="font-weight:700;font-size:1rem;">Order #${o.id} — ${o.store_name}</div>
+              <div style="font-size:0.85rem;color:var(--brown-light);">Customer: ${o.customer_name} · ₹${o.total_price}</div>
+            </div>
+            <div class="assign-area">
+              <select class="agent-select" id="agent-sel-${o.id}">
+                <option value="">Select Agent…</option>
+                ${availableAgents.map(a=>`<option value="${a.id}">${a.user_name||a.agent_name||"Agent #"+a.id} (${a.city||"—"})</option>`).join("")}
+              </select>
+              <button class="btn btn-orange btn-sm" onclick="assignAgent(${o.id})">Assign</button>
+            </div>
+          </div>
+        </div>`;
+      box.appendChild(div);
+    });
+  }
+
+  function renderAllDeliveries() {
+    const tbody = document.getElementById("all-deliveries-tbody");
+    tbody.innerHTML = "";
+    if (!allDeliveries.length) { document.getElementById("all-deliveries-empty").classList.remove("hidden"); return; }
+    document.getElementById("all-deliveries-empty").classList.add("hidden");
+    allDeliveries.forEach(d => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>#${d.id}</td>
+        <td>#${d.order_id}</td>
+        <td>${d.agent_name||"—"}</td>
+        <td>${d.customer_name}</td>
+        <td>${d.store_name}</td>
+        <td>${statusBadge(d.status)}</td>
+        <td style="font-size:0.82rem;">${fmtDate(d.picked_up_at)}</td>
+        <td style="font-size:0.82rem;">${fmtDate(d.delivered_at)}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function assignAgent(orderId) {
+    const agentId = parseInt(document.getElementById("agent-sel-"+orderId).value);
+    if (!agentId) { toast("Please select an agent","error"); return; }
+    const btn = document.querySelector(`#agent-sel-${orderId} + button`);
+    setLoading(btn,true);
+    try {
+      await Delivery.adminAssign(orderId, agentId);
+      toast("Agent assigned to Order #"+orderId+" ✓");
+      loadDeliveries();
+    } catch(e){ toast(parseError(e),"error"); setLoading(btn,false); }
+  }
+
+  // ── AGENTS ─────────────────────────────────────────────────
+  async function loadAgents() {
+    try {
+      const d  = await Delivery.adminAgents();
+      allAgents = d.results||d;
+      const tbody = document.getElementById("agents-tbody");
+      tbody.innerHTML = "";
+      if (!allAgents.length) { document.getElementById("agents-empty").classList.remove("hidden"); return; }
+      document.getElementById("agents-empty").classList.add("hidden");
+      allAgents.forEach(a => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="font-weight:700;">#${a.id}</td>
+          <td>${a.user_name||a.agent_name||"—"}</td>
+          <td>${a.city||"—"}</td>
+          <td style="text-transform:capitalize;">${a.vehicle_type||"—"}</td>
+          <td><span class="badge ${a.is_available?"badge-success":"badge-danger"}">${a.is_available?"Online":"Offline"}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    } catch { toast("Failed to load agents","error"); }
+  }
+</script>
+</body>
+</html>

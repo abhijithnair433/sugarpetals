@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard — SugarPetals</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .cart-item { display:flex; gap:1rem; align-items:center; padding:1rem; background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); margin-bottom:1rem; }
+    .cart-item-img { width:70px; height:70px; border-radius:var(--radius-sm); overflow:hidden; flex-shrink:0; }
+    .cart-item-img img { width:100%; height:100%; object-fit:cover; }
+    .cart-item-info { flex:1; }
+    .cart-item-info h4 { font-size:0.95rem; margin-bottom:2px; }
+    .cart-item-info .store-tag { font-size:0.78rem; color:var(--brown-light); }
+    .cart-item-info .price-tag { font-size:1rem; font-weight:700; color:var(--orange); margin-top:4px; }
+    .cart-item-actions { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+    .cart-summary { background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); padding:1.4rem; position:sticky; top:80px; }
+    .cart-summary h3 { margin-bottom:1rem; }
+    .summary-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--cream-dark); font-size:0.9rem; }
+    .summary-row.total { font-weight:700; font-size:1.1rem; border-bottom:none; color:var(--brown-dark); }
+    .cart-layout { display:grid; grid-template-columns:1fr 300px; gap:1.5rem; align-items:start; }
+    .order-card { background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); margin-bottom:1.2rem; overflow:hidden; }
+    .order-header { padding:1rem 1.2rem; background:var(--cream); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; cursor:pointer; }
+    .order-header:hover { background:var(--cream-dark); }
+    .order-header .order-id { font-weight:700; color:var(--brown-dark); }
+    .order-header .order-meta { font-size:0.8rem; color:var(--brown-light); margin-top:2px; }
+    .order-body { padding:1.2rem; display:none; }
+    .order-body.open { display:block; }
+    .order-item-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--cream-dark); font-size:0.88rem; }
+    .order-item-row:last-child { border-bottom:none; }
+    .order-financials { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:1rem; }
+    .fin-box { background:var(--cream); border-radius:var(--radius-sm); padding:10px 14px; text-align:center; }
+    .fin-box .val { font-weight:700; font-size:1rem; color:var(--brown-dark); }
+    .fin-box .lbl { font-size:0.75rem; color:var(--brown-light); }
+    .review-form-card { background:var(--cream); border-radius:var(--radius-md); padding:1.2rem; margin-top:1rem; }
+    .profile-card { background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); padding:1.6rem; max-width:520px; }
+    .profile-avatar { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,var(--brown),var(--orange)); display:flex; align-items:center; justify-content:center; font-size:2rem; color:#fff; margin-bottom:1rem; }
+    .my-review-card { background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); padding:1.2rem; margin-bottom:1rem; }
+    .my-review-card .rv-product { font-weight:700; color:var(--brown-dark); margin-bottom:6px; }
+    .my-review-card .rv-comment { font-size:0.88rem; color:var(--brown); margin-top:4px; }
+    .status-timeline { display:flex; gap:0; margin:1rem 0; flex-wrap:wrap; }
+    .status-step { flex:1; text-align:center; position:relative; padding:8px 4px; min-width:80px; }
+    .status-step::before { content:""; position:absolute; top:14px; left:50%; right:-50%; height:2px; background:var(--cream-dark); z-index:0; }
+    .status-step:last-child::before { display:none; }
+    .status-dot { width:28px; height:28px; border-radius:50%; background:var(--cream-dark); border:2px solid var(--cream-dark); margin:0 auto 6px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; position:relative; z-index:1; }
+    .status-step.done .status-dot { background:var(--green); border-color:var(--green); color:#fff; }
+    .status-step.active .status-dot { background:var(--orange); border-color:var(--orange); color:#fff; }
+    .status-label { font-size:0.7rem; color:var(--brown-light); text-transform:capitalize; }
+    .status-step.active .status-label { color:var(--orange); font-weight:700; }
+    .status-step.done .status-label { color:var(--green); }
+    @media(max-width:768px){ .cart-layout{grid-template-columns:1fr;} .order-financials{grid-template-columns:1fr 1fr;} }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+  <div class="navbar-links">
+    <a href="index.html">Browse</a>
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Customer Menu</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="active" onclick="showTab('cart',this)"><span class="nav-icon">🛒</span> My Cart</a>
+      <a href="#" onclick="showTab('orders',this)"><span class="nav-icon">📦</span> My Orders</a>
+      <a href="#" onclick="showTab('reviews',this)"><span class="nav-icon">⭐</span> My Reviews</a>
+      <a href="#" onclick="showTab('profile',this)"><span class="nav-icon">👤</span> Profile</a>
+      <a href="index.html"><span class="nav-icon">🏠</span> Browse Store</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- ── CART TAB ── -->
+    <div id="tab-cart">
+      <h2 class="page-title">🛒 My Cart</h2>
+      <p class="page-subtitle">Review your items before placing an order.</p>
+      <div id="cart-loading" style="color:var(--brown-light); padding:1rem;">Loading cart…</div>
+      <div class="cart-layout" id="cart-layout" style="display:none;">
+        <div>
+          <div id="cart-items"></div>
+          <div id="cart-empty" class="empty-state hidden">
+            <div class="empty-icon">🛒</div>
+            <p>Your cart is empty. <a href="index.html">Browse products</a> to add items.</p>
+          </div>
+        </div>
+        <div class="cart-summary" id="cart-summary">
+          <h3>Order Summary</h3>
+          <div id="summary-rows"></div>
+          <div class="summary-row total"><span>Total</span><span id="cart-total">₹0</span></div>
+          <div id="cart-store-note" style="font-size:0.78rem; color:var(--brown-light); margin:10px 0 14px; display:none;"></div>
+          <button class="btn btn-orange btn-full btn-lg" id="place-order-btn" onclick="placeOrder()" style="margin-top:1rem;" disabled>Place Order</button>
+          <p style="font-size:0.75rem; color:var(--brown-light); margin-top:8px; text-align:center;">All items must be from the same bakery.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ORDERS TAB ── -->
+    <div id="tab-orders" style="display:none;">
+      <h2 class="page-title">📦 My Orders</h2>
+      <p class="page-subtitle">Track all your placed orders.</p>
+      <div id="orders-list"></div>
+      <div id="orders-empty" class="empty-state hidden"><div class="empty-icon">📦</div><p>No orders yet. Start shopping!</p></div>
+      <button class="btn btn-outline load-more-btn hidden" id="orders-load-more" onclick="loadMoreOrders()">Load More</button>
+    </div>
+
+    <!-- ── REVIEWS TAB ── -->
+    <div id="tab-reviews" style="display:none;">
+      <h2 class="page-title">⭐ My Reviews</h2>
+      <p class="page-subtitle">Reviews you have submitted.</p>
+      <div id="reviews-list"></div>
+      <div id="reviews-empty" class="empty-state hidden"><div class="empty-icon">⭐</div><p>You haven't reviewed any products yet.</p></div>
+    </div>
+
+    <!-- ── PROFILE TAB ── -->
+    <div id="tab-profile" style="display:none;">
+      <h2 class="page-title">👤 My Profile</h2>
+      <p class="page-subtitle">Manage your account details.</p>
+      <div class="profile-card">
+        <div class="profile-avatar" id="profile-avatar">👤</div>
+        <div id="profile-info" style="margin-bottom:1.5rem;">
+          <h3 id="profile-username"></h3>
+          <p id="profile-role-line" style="font-size:0.85rem; color:var(--brown-light);"></p>
+        </div>
+        <form id="profile-form">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="profile-email" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="profile-phone" class="form-control" placeholder="Phone number" />
+          </div>
+          <button type="submit" class="btn btn-primary" id="profile-save-btn">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="review-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Leave a Review</h3>
+      <button class="modal-close" onclick="closeReviewModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="review-product-name" style="font-weight:600; margin-bottom:1rem; color:var(--brown-dark);"></p>
+      <div class="form-group">
+        <label>Rating</label>
+        <div class="star-select" id="star-select" style="display:flex; flex-direction:row-reverse; justify-content:flex-end; gap:4px;">
+          <input type="radio" id="s5" name="rating" value="5"><label for="s5">★</label>
+          <input type="radio" id="s4" name="rating" value="4"><label for="s4">★</label>
+          <input type="radio" id="s3" name="rating" value="3"><label for="s3">★</label>
+          <input type="radio" id="s2" name="rating" value="2"><label for="s2">★</label>
+          <input type="radio" id="s1" name="rating" value="1" checked><label for="s1">★</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Comment <span style="font-weight:400; color:var(--brown-light);">(optional)</span></label>
+        <textarea id="review-comment" class="form-control" rows="3" placeholder="Share your experience…"></textarea>
+      </div>
+      <input type="hidden" id="review-product-id" />
+      <input type="hidden" id="review-order-id" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeReviewModal()">Cancel</button>
+      <button class="btn btn-orange" id="submit-review-btn" onclick="submitReview()">Submit Review</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = requireAuth(["customer"]);
+  if (!user) throw new Error("Not authorized");
+
+  const ORDER_STATUSES = ["pending","confirmed","baking","out_for_delivery","delivered"];
+  let ordersPage = 1, ordersHasNext = false;
+
+  // ── Tab switching ──────────────────────────────────────────
+  function showTab(name, el) {
+    if (el) { event.preventDefault(); document.querySelectorAll(".sidebar-nav a").forEach(a => a.classList.remove("active")); el.classList.add("active"); }
+    ["cart","orders","reviews","profile"].forEach(t => document.getElementById("tab-"+t).style.display = t===name ? "block" : "none");
+    if (name === "cart")    loadCart();
+    if (name === "orders")  loadOrders(true);
+    if (name === "reviews") loadMyReviews();
+    if (name === "profile") loadProfile();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const hash = window.location.hash.replace("#","");
+    const valid = ["cart","orders","reviews","profile"];
+    const tab   = valid.includes(hash) ? hash : "cart";
+    showTab(tab);
+    if (tab !== "cart") {
+      const link = document.querySelector(`.sidebar-nav a[onclick*="${tab}"]`);
+      if (link) { document.querySelectorAll(".sidebar-nav a").forEach(a => a.classList.remove("active")); link.classList.add("active"); }
+    }
+  });
+
+  // ── CART ──────────────────────────────────────────────────
+  let cartItems = [];
+  async function loadCart() {
+    document.getElementById("cart-loading").style.display = "block";
+    document.getElementById("cart-layout").style.display  = "none";
+    try {
+      const data = await Cart.get();
+      cartItems = data.results || data;
+      renderCart();
+    } catch { toast("Failed to load cart", "error"); }
+    document.getElementById("cart-loading").style.display = "none";
+    document.getElementById("cart-layout").style.display  = "grid";
+  }
+
+  function renderCart() {
+    const container = document.getElementById("cart-items");
+    const emptyEl   = document.getElementById("cart-empty");
+    const summaryEl = document.getElementById("summary-rows");
+    const totalEl   = document.getElementById("cart-total");
+    const placeBtn  = document.getElementById("place-order-btn");
+    container.innerHTML = "";
+    if (!cartItems.length) { emptyEl.classList.remove("hidden"); placeBtn.disabled = true; summaryEl.innerHTML = ""; totalEl.textContent = "₹0"; return; }
+    emptyEl.classList.add("hidden");
+    let total = 0;
+    summaryEl.innerHTML = "";
+    cartItems.forEach(item => {
+      const subtotal = parseFloat(item.product.price) * item.quantity;
+      total += subtotal;
+      summaryEl.innerHTML += `<div class="summary-row"><span>${item.product.name} × ${item.quantity}</span><span>₹${subtotal.toFixed(2)}</span></div>`;
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <div class="cart-item-img">${productImg(item.product.image || "nill")}</div>
+        <div class="cart-item-info">
+          <h4>${item.product.name}</h4>
+          <div class="store-tag">🏪 ${item.product.store_name || "—"}</div>
+          <div class="price-tag">₹${item.product.price} each</div>
+        </div>
+        <div class="cart-item-actions">
+          <div class="qty-control">
+            <button class="qty-btn" onclick="updateCartQty(${item.id}, ${item.quantity - 1})">−</button>
+            <span class="qty-value">${item.quantity}</span>
+            <button class="qty-btn" onclick="updateCartQty(${item.id}, ${item.quantity + 1})">+</button>
+          </div>
+          <span style="font-weight:700; color:var(--orange);">₹${subtotal.toFixed(2)}</span>
+          <button class="btn btn-danger btn-sm" onclick="removeCartItem(${item.id})">Remove</button>
+        </div>`;
+      container.appendChild(div);
+    });
+    totalEl.textContent = "₹" + total.toFixed(2);
+    placeBtn.disabled = false;
+    // Store note
+    const stores = [...new Set(cartItems.map(i => i.product.store_name))];
+    const noteEl = document.getElementById("cart-store-note");
+    if (stores.length) { noteEl.textContent = "🏪 " + stores[0]; noteEl.style.display = "block"; }
+  }
+
+  async function updateCartQty(id, qty) {
+    if (qty < 1) { removeCartItem(id); return; }
+    try { await Cart.update(id, qty); loadCart(); } catch (e) { toast(parseError(e), "error"); }
+  }
+
+  async function removeCartItem(id) {
+    try { await Cart.remove(id); toast("Item removed"); loadCart(); } catch (e) { toast(parseError(e), "error"); }
+  }
+
+  async function placeOrder() {
+    const btn = document.getElementById("place-order-btn");
+    setLoading(btn, true);
+    try {
+      await Orders.place();
+      toast("Order placed successfully! 🎉");
+      cartItems = [];
+      renderCart();
+      setTimeout(() => showTab("orders"), 1200);
+    } catch (e) { toast(parseError(e), "error"); setLoading(btn, false); }
+  }
+
+  // ── ORDERS ────────────────────────────────────────────────
+  async function loadOrders(reset = false) {
+    if (reset) { ordersPage = 1; document.getElementById("orders-list").innerHTML = ""; }
+    try {
+      const data = await Orders.myOrders({ page: ordersPage });
+      const items = data.results || [];
+      ordersHasNext = !!data.next;
+      if (!items.length && reset) { document.getElementById("orders-empty").classList.remove("hidden"); return; }
+      document.getElementById("orders-empty").classList.add("hidden");
+      items.forEach(o => document.getElementById("orders-list").appendChild(buildOrderCard(o)));
+      document.getElementById("orders-load-more").classList.toggle("hidden", !ordersHasNext);
+    } catch { toast("Failed to load orders", "error"); }
+  }
+
+  function loadMoreOrders() { ordersPage++; loadOrders(false); }
+
+  function buildOrderCard(o) {
+    const div = document.createElement("div");
+    div.className = "order-card";
+    const activeIdx = ORDER_STATUSES.indexOf(o.status);
+    const timeline  = ORDER_STATUSES.map((s, i) => `
+      <div class="status-step ${i < activeIdx ? "done" : i === activeIdx ? "active" : ""}">
+        <div class="status-dot">${i < activeIdx ? "✓" : i+1}</div>
+        <div class="status-label">${s.replace(/_/g," ")}</div>
+      </div>`).join("");
+    const canReview = o.status === "delivered";
+    div.innerHTML = `
+      <div class="order-header" onclick="toggleOrder(this)">
+        <div>
+          <div class="order-id">Order #${o.id} — ${o.store_name}</div>
+          <div class="order-meta">${fmtDate(o.created_at)}</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span style="font-weight:700; color:var(--orange);">₹${o.total_price}</span>
+          ${statusBadge(o.status)}
+          <span style="color:var(--brown-light); font-size:1.2rem;">›</span>
+        </div>
+      </div>
+      <div class="order-body">
+        <div class="status-timeline">${timeline}</div>
+        <h4 style="margin-bottom:8px;">Items</h4>
+        ${o.items.map(it => `
+          <div class="order-item-row">
+            <span>${it.product.name} × ${it.quantity}</span>
+            <span style="font-weight:600;">₹${it.subtotal}</span>
+          </div>`).join("")}
+        <div class="order-financials">
+          <div class="fin-box"><div class="val">₹${o.total_price}</div><div class="lbl">Total</div></div>
+          <div class="fin-box"><div class="val">₹${o.platform_commission}</div><div class="lbl">Platform Fee</div></div>
+          <div class="fin-box"><div class="val">₹${o.seller_earnings}</div><div class="lbl">Seller Earns</div></div>
+        </div>
+        ${canReview ? `<div style="margin-top:1rem;">${o.items.map(it=>`<button class="btn btn-outline btn-sm" onclick="openReviewModal(${it.product.id},'${it.product.name}',${o.id})" style="margin:4px;">⭐ Review ${it.product.name}</button>`).join("")}</div>` : ""}
+      </div>`;
+    return div;
+  }
+
+  function toggleOrder(el) { el.nextElementSibling.classList.toggle("open"); }
+
+  // ── REVIEWS ───────────────────────────────────────────────
+  async function loadMyReviews() {
+    try {
+      const data = await Reviews.myReviews();
+      const items = data.results || data;
+      const box   = document.getElementById("reviews-list");
+      box.innerHTML = "";
+      if (!items.length) { document.getElementById("reviews-empty").classList.remove("hidden"); return; }
+      document.getElementById("reviews-empty").classList.add("hidden");
+      items.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "my-review-card";
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+            <div>
+              <div class="rv-product">🧁 ${r.product_name}</div>
+              <div class="stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</div>
+              <div class="rv-comment">${r.comment || "<em>No comment</em>"}</div>
+              <div style="font-size:0.75rem; color:var(--brown-light); margin-top:6px;">${fmtDate(r.created_at)}</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteReview(${r.product})">Delete</button>
+          </div>`;
+        box.appendChild(div);
+      });
+    } catch { toast("Failed to load reviews", "error"); }
+  }
+
+  async function deleteReview(productId) {
+    if (!confirm("Delete this review?")) return;
+    try { await Reviews.delete(productId); toast("Review deleted"); loadMyReviews(); }
+    catch (e) { toast(parseError(e), "error"); }
+  }
+
+  function openReviewModal(productId, productName, orderId) {
+    document.getElementById("review-product-id").value = productId;
+    document.getElementById("review-order-id").value   = orderId;
+    document.getElementById("review-product-name").textContent = "Reviewing: " + productName;
+    document.getElementById("review-comment").value = "";
+    document.querySelector('input[name="rating"][value="5"]').checked = true;
+    document.getElementById("review-modal").classList.add("open");
+  }
+
+  function closeReviewModal() { document.getElementById("review-modal").classList.remove("open"); }
+
+  async function submitReview() {
+    const productId = document.getElementById("review-product-id").value;
+    const orderId   = document.getElementById("review-order-id").value;
+    const rating    = document.querySelector('input[name="rating"]:checked')?.value;
+    const comment   = document.getElementById("review-comment").value.trim();
+    if (!rating) { toast("Please select a rating", "error"); return; }
+    const btn = document.getElementById("submit-review-btn");
+    setLoading(btn, true);
+    try {
+      await Reviews.add(productId, { rating: parseInt(rating), comment, order: parseInt(orderId) });
+      toast("Review submitted! ⭐");
+      closeReviewModal();
+      loadMyReviews();
+    } catch (e) { toast(parseError(e), "error"); }
+    setLoading(btn, false);
+  }
+
+  // ── PROFILE ───────────────────────────────────────────────
+  async function loadProfile() {
+    try {
+      const u = await Auth.getProfile();
+      document.getElementById("profile-username").textContent = u.username;
+      document.getElementById("profile-role-line").textContent = "Role: " + (getRole()) + " · ID: " + u.id;
+      document.getElementById("profile-email").value = u.email || "";
+      document.getElementById("profile-phone").value = u.phone || "";
+    } catch { toast("Failed to load profile", "error"); }
+  }
+
+  document.getElementById("profile-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("profile-save-btn");
+    setLoading(btn, true);
+    try {
+      await Auth.updateProfile({ email: document.getElementById("profile-email").value, phone: document.getElementById("profile-phone").value });
+      toast("Profile updated successfully ✓");
+    } catch (err) { toast(parseError(err), "error"); }
+    setLoading(btn, false);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delivery Dashboard — SugarPetals</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .delivery-card { background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); margin-bottom:1.2rem; overflow:hidden; }
+    .delivery-card-header { padding:1rem 1.2rem; background:var(--cream); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+    .delivery-card-body { padding:1.2rem; }
+    .delivery-meta { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:1rem; }
+    .delivery-meta-item { background:var(--cream); border-radius:var(--radius-sm); padding:10px 14px; }
+    .delivery-meta-item .dm-label { font-size:0.75rem; color:var(--brown-light); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+    .delivery-meta-item .dm-value { font-weight:700; font-size:0.95rem; color:var(--brown-dark); }
+    .status-action-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--cream-dark); }
+    .avail-toggle-row { display:flex; align-items:center; gap:14px; background:var(--warm-white); border-radius:var(--radius-md); padding:1rem 1.4rem; box-shadow:var(--shadow-sm); margin-bottom:1.5rem; }
+    .avail-toggle-row .avail-label { font-weight:700; color:var(--brown-dark); }
+    .avail-dot { width:10px; height:10px; border-radius:50%; background:var(--cream-dark); flex-shrink:0; }
+    .avail-dot.online { background:var(--green); box-shadow:0 0 6px rgba(90,122,82,0.5); }
+    .no-agent-card { text-align:center; padding:3rem; background:var(--warm-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); max-width:480px; margin:0 auto; }
+    /* Available pickup card */
+    .pickup-card { background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); margin-bottom:1.2rem; overflow:hidden; border-left:4px solid var(--orange); transition:box-shadow var(--transition),transform var(--transition); }
+    .pickup-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .pickup-card-header { padding:1rem 1.2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid var(--cream-dark); }
+    .pickup-card-body { padding:1.2rem; }
+    .pickup-items { margin:10px 0; }
+    .pickup-item-row { display:flex; justify-content:space-between; padding:5px 0; font-size:0.88rem; border-bottom:1px dashed var(--cream-dark); }
+    .pickup-item-row:last-child { border-bottom:none; }
+    .pickup-store-box { background:var(--cream); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:10px; }
+    .pickup-store-box .store-name { font-weight:700; color:var(--brown-dark); }
+    .pickup-store-box .store-city { font-size:0.82rem; color:var(--brown-light); margin-top:2px; }
+    .city-filter-bar { display:flex; gap:10px; align-items:center; margin-bottom:1.2rem; flex-wrap:wrap; }
+    .city-filter-bar input { padding:8px 14px; border:2px solid var(--cream-dark); border-radius:var(--radius-sm); font-size:0.9rem; background:var(--warm-white); flex:1; max-width:260px; }
+    .refresh-btn { background:none; border:2px solid var(--brown-light); border-radius:var(--radius-sm); padding:7px 14px; cursor:pointer; color:var(--brown); font-size:0.85rem; font-weight:600; transition:all var(--transition); }
+    .refresh-btn:hover { background:var(--cream-dark); }
+    .section-split { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    @media(max-width:768px){ .delivery-meta{grid-template-columns:1fr;} .section-split{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+  <div class="navbar-links"><div id="nav-user"></div></div>
+</nav>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Delivery Menu</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="active" onclick="showTab('pickups',this)"><span class="nav-icon">📋</span> Available Pickups</a>
+      <a href="#" onclick="showTab('deliveries',this)"><span class="nav-icon">🚴</span> My Deliveries</a>
+      <a href="#" onclick="showTab('profile',this)"><span class="nav-icon">👤</span> Profile & Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- ── AVAILABLE PICKUPS TAB ── -->
+    <div id="tab-pickups">
+      <h2 class="page-title">📋 Available Pickups</h2>
+      <p class="page-subtitle">Orders ready at stores — claim one to start your delivery run.</p>
+
+      <!-- Availability warning -->
+      <div id="offline-warning" class="hidden" style="background:#fff8e1;border:1px solid #ffc107;border-radius:var(--radius-md);padding:1rem 1.4rem;margin-bottom:1.2rem;color:#856404;font-weight:600;display:flex;align-items:center;gap:10px;">
+        ⚠️ You are currently <strong>Offline</strong>. Set yourself Online to claim pickups.
+        <button class="btn btn-sm btn-orange" style="margin-left:auto;" onclick="goOnlineAndRefresh()">Go Online</button>
+      </div>
+
+      <!-- Availability toggle -->
+      <div class="avail-toggle-row" id="avail-row" style="display:none;">
+        <div class="avail-dot" id="avail-dot"></div>
+        <span class="avail-label" id="avail-label">Loading…</span>
+        <label style="position:relative;display:inline-block;width:42px;height:24px;cursor:pointer;margin-left:auto;">
+          <input type="checkbox" id="avail-toggle" onchange="toggleAvailability(this.checked)" />
+          <span id="avail-bg" style="position:absolute;inset:0;background:var(--cream-dark);border-radius:24px;transition:all 0.3s;"></span>
+          <span id="avail-thumb" style="position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:all 0.3s;z-index:1;"></span>
+        </label>
+        <span style="font-size:0.85rem;color:var(--brown-light);">Availability</span>
+      </div>
+
+      <!-- No agent -->
+      <div id="no-agent-area" style="display:none;">
+        <div class="no-agent-card">
+          <div style="font-size:4rem;margin-bottom:1rem;">🚴</div>
+          <h3>Complete Your Agent Profile</h3>
+          <p style="margin:1rem 0;">Register as a delivery agent to start claiming pickups.</p>
+          <button class="btn btn-orange btn-lg" onclick="openAgentSetup()">Set Up Agent Profile</button>
+        </div>
+      </div>
+
+      <!-- Pickups board -->
+      <div id="pickups-board" style="display:none;">
+        <div class="city-filter-bar">
+          <input type="text" id="city-filter" placeholder="🔍 Filter by city (e.g. Mumbai)" />
+          <button class="refresh-btn" onclick="loadAvailablePickups()">↻ Refresh</button>
+          <button class="btn btn-outline btn-sm" onclick="applyMyCity()">📍 My City</button>
+        </div>
+        <div id="pickups-list"></div>
+        <div id="pickups-empty" class="empty-state hidden">
+          <div class="empty-icon">✅</div>
+          <p>No available pickups right now. Check back soon!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MY DELIVERIES TAB ── -->
+    <div id="tab-deliveries" style="display:none;">
+      <h2 class="page-title">🚴 My Deliveries</h2>
+      <p class="page-subtitle">Track and update your active delivery runs.</p>
+
+      <div class="tabs" style="margin-bottom:1.5rem;">
+        <button class="tab-btn active" onclick="filterDeliveries('all',this)">All</button>
+        <button class="tab-btn" onclick="filterDeliveries('assigned',this)">🟡 Ready to Pick Up</button>
+        <button class="tab-btn" onclick="filterDeliveries('picked_up',this)">🔵 In Transit</button>
+        <button class="tab-btn" onclick="filterDeliveries('delivered',this)">✅ Completed</button>
+      </div>
+      <div id="deliveries-list"></div>
+      <div id="deliveries-empty" class="empty-state hidden">
+        <div class="empty-icon">🚴</div>
+        <p>No deliveries in this category yet.</p>
+      </div>
+    </div>
+
+    <!-- ── PROFILE TAB ── -->
+    <div id="tab-profile" style="display:none;">
+      <h2 class="page-title">👤 Profile & Settings</h2>
+      <p class="page-subtitle">Manage your account and agent details.</p>
+      <div class="section-split" style="max-width:800px;">
+        <div class="card">
+          <div class="card-header"><h4>Account</h4></div>
+          <div class="card-body">
+            <form id="account-form">
+              <div class="form-group"><label>Email</label><input type="email" id="acc-email" class="form-control" /></div>
+              <div class="form-group"><label>Phone</label><input type="text" id="acc-phone" class="form-control" /></div>
+              <button type="submit" class="btn btn-primary btn-full" id="acc-save-btn">Save</button>
+            </form>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Agent Settings</h4></div>
+          <div class="card-body">
+            <form id="agent-form">
+              <div class="form-group"><label>City</label><input type="text" id="ag-city" class="form-control" placeholder="Mumbai" /></div>
+              <div class="form-group"><label>Vehicle Type</label>
+                <select id="ag-vehicle" class="form-control">
+                  <option value="bike">Bike</option>
+                  <option value="scooter">Scooter</option>
+                  <option value="bicycle">Bicycle</option>
+                  <option value="car">Car</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full" id="ag-save-btn">Update</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Agent Setup Modal -->
+<div class="modal-overlay" id="agent-setup-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Set Up Agent Profile</h3>
+      <button class="modal-close" onclick="closeAgentSetup()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>City *</label><input type="text" id="setup-city" class="form-control" placeholder="e.g. Mumbai" /></div>
+      <div class="form-group"><label>Vehicle Type</label>
+        <select id="setup-vehicle" class="form-control">
+          <option value="bike">Bike</option>
+          <option value="scooter">Scooter</option>
+          <option value="bicycle">Bicycle</option>
+          <option value="car">Car</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAgentSetup()">Cancel</button>
+      <button class="btn btn-orange" id="agent-setup-btn" onclick="submitAgentSetup()">Register</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = requireAuth(["delivery"]);
+  if (!user) throw new Error();
+
+  let agentProfile = null;
+  let allDeliveries = [];
+  let activeFilter = "all";
+
+  // ── Tab switch ─────────────────────────────────────────────
+  function showTab(name, el) {
+    if (el) { event.preventDefault(); document.querySelectorAll(".sidebar-nav a").forEach(a=>a.classList.remove("active")); el.classList.add("active"); }
+    ["pickups","deliveries","profile"].forEach(t => document.getElementById("tab-"+t).style.display = t===name?"block":"none");
+    if (name==="pickups")    initPickupsTab();
+    if (name==="deliveries") loadDeliveries();
+    if (name==="profile")    loadProfileTab();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => initPickupsTab());
+
+  // ── Init pickups tab ───────────────────────────────────────
+  async function initPickupsTab() {
+    try {
+      agentProfile = await Delivery.getProfile();
+      document.getElementById("no-agent-area").style.display  = "none";
+      document.getElementById("pickups-board").style.display  = "block";
+      document.getElementById("avail-row").style.display      = "flex";
+      syncAvailUI();
+      loadAvailablePickups();
+    } catch {
+      agentProfile = null;
+      document.getElementById("no-agent-area").style.display  = "block";
+      document.getElementById("pickups-board").style.display  = "none";
+      document.getElementById("avail-row").style.display      = "none";
+    }
+  }
+
+  function syncAvailUI() {
+    const isAvail = agentProfile && agentProfile.is_available;
+    document.getElementById("avail-toggle").checked = isAvail;
+    document.getElementById("avail-dot").className  = "avail-dot" + (isAvail?" online":"");
+    document.getElementById("avail-label").textContent = isAvail ? "You are Online — ready to claim pickups" : "You are Offline — go online to claim pickups";
+    document.getElementById("avail-bg").style.background    = isAvail ? "var(--green)" : "var(--cream-dark)";
+    document.getElementById("avail-thumb").style.transform  = isAvail ? "translateX(18px)" : "translateX(0)";
+    document.getElementById("offline-warning").classList.toggle("hidden", !!isAvail);
+  }
+
+  async function toggleAvailability(val) {
+    document.getElementById("avail-bg").style.background   = val ? "var(--green)" : "var(--cream-dark)";
+    document.getElementById("avail-thumb").style.transform = val ? "translateX(18px)" : "translateX(0)";
+    try {
+      await Delivery.updateProfile({ is_available: val });
+      if (agentProfile) agentProfile.is_available = val;
+      syncAvailUI();
+      toast(val ? "You are now Online 🟢 — pickups available!" : "You are now Offline 🔴");
+    } catch(e) { toast(parseError(e),"error"); }
+  }
+
+  async function goOnlineAndRefresh() {
+    await toggleAvailability(true);
+    document.getElementById("avail-toggle").checked = true;
+    loadAvailablePickups();
+  }
+
+  // ── Available pickups board ────────────────────────────────
+  async function loadAvailablePickups() {
+    const city = document.getElementById("city-filter").value.trim();
+    const list = document.getElementById("pickups-list");
+    const emptyEl = document.getElementById("pickups-empty");
+    list.innerHTML = `<p style="color:var(--brown-light);padding:1rem;">Loading available orders…</p>`;
+    try {
+      const data   = await Delivery.availableOrders(city);
+      const orders = data.results || data;
+      list.innerHTML = "";
+      if (!orders.length) { emptyEl.classList.remove("hidden"); return; }
+      emptyEl.classList.add("hidden");
+      orders.forEach(o => list.appendChild(buildPickupCard(o)));
+    } catch(e) { list.innerHTML = ""; toast(parseError(e),"error"); }
+  }
+
+  function buildPickupCard(o) {
+    const div = document.createElement("div");
+    div.className = "pickup-card";
+    const isOnline = agentProfile && agentProfile.is_available;
+    div.innerHTML = `
+      <div class="pickup-card-header">
+        <div>
+          <div style="font-weight:700;font-size:1rem;color:var(--brown-dark);">Order #${o.id}</div>
+          <div style="font-size:0.8rem;color:var(--brown-light);">${fmtDate(o.created_at)}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-weight:700;color:var(--orange);font-size:1.05rem;">₹${o.total_price}</span>
+          ${statusBadge(o.status)}
+        </div>
+      </div>
+      <div class="pickup-card-body">
+        <!-- Store pickup info -->
+        <div class="pickup-store-box">
+          <div style="font-size:0.72rem;color:var(--brown-light);font-weight:700;text-transform:uppercase;margin-bottom:6px;">📍 Pick Up From</div>
+          <div class="store-name">🏪 ${o.store_name}</div>
+          <div class="store-city">📌 ${o.store_city || o.store_address || "See store for address"}</div>
+        </div>
+        <!-- Customer -->
+        <div style="font-size:0.85rem;color:var(--brown-light);margin-bottom:10px;">
+          <span style="font-weight:600;color:var(--brown-dark);">👤 Deliver to:</span> ${o.customer_name}
+        </div>
+        <!-- Items list -->
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--brown-light);margin-bottom:6px;">🧁 Items to Collect</div>
+        <div class="pickup-items">
+          ${(o.items||[]).map(it=>`
+            <div class="pickup-item-row">
+              <span>${it.product?.name || "Item"} × ${it.quantity}</span>
+              <span style="font-weight:600;">₹${it.subtotal}</span>
+            </div>`).join("") || `<div style="color:var(--brown-light);font-size:0.85rem;">Item details not available</div>`}
+        </div>
+        <!-- Action -->
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--cream-dark);">
+          ${isOnline
+            ? `<button class="btn btn-orange" onclick="claimPickup(${o.id}, this)">🚴 Claim This Pickup</button>`
+            : `<button class="btn btn-outline" disabled title="Go online first">Go Online to Claim</button>`
+          }
+        </div>
+      </div>`;
+    return div;
+  }
+
+  async function claimPickup(orderId, btn) {
+    if (!agentProfile || !agentProfile.is_available) {
+      toast("You must be Online to claim a pickup.", "error"); return;
+    }
+    setLoading(btn, true);
+    try {
+      await Delivery.selfPickup(orderId);
+      toast("🎉 Pickup claimed! Go collect from the store.");
+      // Remove from board + refresh my deliveries badge
+      btn.closest(".pickup-card").remove();
+      const remaining = document.querySelectorAll(".pickup-card").length;
+      if (!remaining) document.getElementById("pickups-empty").classList.remove("hidden");
+    } catch(e) {
+      toast(parseError(e), "error");
+      setLoading(btn, false);
+      // If already taken, refresh the board
+      if (parseError(e).includes("already")) loadAvailablePickups();
+    }
+  }
+
+  function applyMyCity() {
+    if (agentProfile && agentProfile.city) {
+      document.getElementById("city-filter").value = agentProfile.city;
+      loadAvailablePickups();
+    } else { toast("No city set in your agent profile", "info"); }
+  }
+
+  document.getElementById("city-filter").addEventListener("keydown", e => { if(e.key==="Enter") loadAvailablePickups(); });
+
+  // ── My Deliveries ──────────────────────────────────────────
+  async function loadDeliveries() {
+    try {
+      const d = await Delivery.myDeliveries();
+      allDeliveries = d.results||d;
+      renderDeliveries();
+    } catch { toast("Failed to load deliveries","error"); }
+  }
+
+  function filterDeliveries(filter, btn) {
+    activeFilter = filter;
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    renderDeliveries();
+  }
+
+  function renderDeliveries() {
+    const list    = document.getElementById("deliveries-list");
+    const emptyEl = document.getElementById("deliveries-empty");
+    const filtered = activeFilter==="all" ? allDeliveries : allDeliveries.filter(d=>d.status===activeFilter);
+    list.innerHTML = "";
+    if (!filtered.length) { emptyEl.classList.remove("hidden"); return; }
+    emptyEl.classList.add("hidden");
+    filtered.forEach(d => list.appendChild(buildDeliveryCard(d)));
+  }
+
+  function buildDeliveryCard(d) {
+    const div = document.createElement("div");
+    div.className = "delivery-card";
+    const nextStatus = d.status==="assigned" ? "picked_up" : d.status==="picked_up" ? "delivered" : null;
+    const isReadyToPickup = d.status === "assigned";
+    const actionBtn = nextStatus
+      ? `<button class="btn ${isReadyToPickup?'btn-orange':'btn-success'}" onclick="updateDeliveryStatus(${d.id},'${nextStatus}',this)">
+           ${isReadyToPickup ? "✅ Mark Picked Up from Store" : "📦 Mark Delivered to Customer"}
+         </button>`
+      : `<span class="badge badge-success" style="font-size:0.9rem;">✓ Delivery Complete</span>`;
+
+    div.innerHTML = `
+      <div class="delivery-card-header">
+        <div>
+          <div style="font-weight:700;color:var(--brown-dark);">Delivery #${d.id} — Order #${d.order_id}</div>
+          <div style="font-size:0.8rem;color:var(--brown-light);">
+            ${d.status==="assigned" ? "⏳ Waiting to be picked up from store" : d.status==="picked_up" ? "🛵 In transit to customer" : "✅ Delivered"}
+          </div>
+        </div>
+        ${statusBadge(d.status)}
+      </div>
+      <div class="delivery-card-body">
+        <div class="delivery-meta">
+          <div class="delivery-meta-item">
+            <div class="dm-label">📍 Pick Up From</div>
+            <div class="dm-value">🏪 ${d.store_name}</div>
+          </div>
+          <div class="delivery-meta-item">
+            <div class="dm-label">🏠 Deliver To</div>
+            <div class="dm-value">👤 ${d.customer_name}</div>
+          </div>
+          <div class="delivery-meta-item">
+            <div class="dm-label">Picked Up At</div>
+            <div class="dm-value">${d.picked_up_at ? fmtDate(d.picked_up_at) : "—"}</div>
+          </div>
+          <div class="delivery-meta-item">
+            <div class="dm-label">Delivered At</div>
+            <div class="dm-value">${d.delivered_at ? fmtDate(d.delivered_at) : "—"}</div>
+          </div>
+        </div>
+        <div class="status-action-bar">${actionBtn}</div>
+      </div>`;
+    return div;
+  }
+
+  async function updateDeliveryStatus(id, status, btn) {
+    setLoading(btn, true);
+    try {
+      await Delivery.updateStatus(id, status);
+      toast(status==="picked_up" ? "Picked up from store! 🛵 Now deliver to customer." : "Order delivered! Great job! 🎉");
+      loadDeliveries();
+    } catch(e) { toast(parseError(e),"error"); setLoading(btn,false); }
+  }
+
+  // ── Agent Setup Modal ──────────────────────────────────────
+  function openAgentSetup()  { document.getElementById("agent-setup-modal").classList.add("open"); }
+  function closeAgentSetup() { document.getElementById("agent-setup-modal").classList.remove("open"); }
+
+  async function submitAgentSetup() {
+    const city    = document.getElementById("setup-city").value.trim();
+    const vehicle = document.getElementById("setup-vehicle").value;
+    if (!city) { toast("City is required","error"); return; }
+    const btn = document.getElementById("agent-setup-btn");
+    setLoading(btn, true);
+    try {
+      await Delivery.register({ city, vehicle_type: vehicle });
+      toast("Agent profile created! 🚴");
+      closeAgentSetup();
+      initPickupsTab();
+    } catch(e) { toast(parseError(e),"error"); setLoading(btn,false); }
+  }
+
+  // ── Profile Tab ────────────────────────────────────────────
+  async function loadProfileTab() {
+    try {
+      const u = await Auth.getProfile();
+      document.getElementById("acc-email").value = u.email||"";
+      document.getElementById("acc-phone").value = u.phone||"";
+    } catch {}
+    if (!agentProfile) { try { agentProfile = await Delivery.getProfile(); } catch {} }
+    if (agentProfile) {
+      document.getElementById("ag-city").value    = agentProfile.city||"";
+      document.getElementById("ag-vehicle").value = agentProfile.vehicle_type||"bike";
+    }
+  }
+
+  document.getElementById("account-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = document.getElementById("acc-save-btn");
+    setLoading(btn, true);
+    try {
+      await Auth.updateProfile({ email:document.getElementById("acc-email").value, phone:document.getElementById("acc-phone").value });
+      toast("Account updated ✓");
+    } catch(e){ toast(parseError(e),"error"); }
+    setLoading(btn, false);
+  });
+
+  document.getElementById("agent-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = document.getElementById("ag-save-btn");
+    setLoading(btn, true);
+    try {
+      await Delivery.updateProfile({ city:document.getElementById("ag-city").value.trim(), vehicle_type:document.getElementById("ag-vehicle").value });
+      if (agentProfile) agentProfile.city = document.getElementById("ag-city").value.trim();
+      toast("Agent profile updated ✓");
+    } catch(e){ toast(parseError(e),"error"); }
+    setLoading(btn, false);
+  });
+</script>
+</body>
+</html>

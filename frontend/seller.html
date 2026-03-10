@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seller Dashboard — SugarPetals</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .store-status-banner { border-radius:var(--radius-md); padding:1rem 1.4rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:12px; font-weight:600; }
+    .store-status-banner.pending  { background:#fff8e1; color:#856404; border:1px solid #ffc107; }
+    .store-status-banner.approved { background:#e8f5e9; color:#2e7d32; border:1px solid #81c784; }
+    .store-status-banner.suspended{ background:#fdecea; color:#c62828; border:1px solid #ef9a9a; }
+    .store-status-banner .banner-icon { font-size:1.4rem; }
+    .product-table-img { width:44px; height:44px; border-radius:var(--radius-sm); overflow:hidden; flex-shrink:0; }
+    .product-table-img img { width:100%; height:100%; object-fit:cover; }
+    .product-table-img .img-placeholder { width:44px; height:44px; font-size:1.2rem; }
+    .order-status-select { padding:6px 10px; border:2px solid var(--cream-dark); border-radius:var(--radius-sm); font-family:var(--font-main); font-size:0.85rem; background:var(--warm-white); color:var(--brown-dark); cursor:pointer; }
+    .no-store-card { text-align:center; padding:3rem; background:var(--warm-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); max-width:480px; margin:0 auto; }
+    .no-store-card .icon { font-size:4rem; margin-bottom:1rem; }
+    .earnings-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .product-row-name { font-weight:600; font-size:0.9rem; color:var(--brown-dark); }
+    .product-row-store { font-size:0.78rem; color:var(--brown-light); }
+    .toggle-avail { position:relative; display:inline-block; width:42px; height:24px; cursor:pointer; }
+    .toggle-avail input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; background:var(--cream-dark); border-radius:24px; transition:all 0.3s; }
+    .toggle-slider::before { content:""; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:all 0.3s; }
+    .toggle-avail input:checked + .toggle-slider { background:var(--green); }
+    .toggle-avail input:checked + .toggle-slider::before { transform:translateX(18px); }
+    .order-expand-row td { padding:0 !important; background:var(--cream); }
+    .order-expand-inner { padding:1rem 1.4rem; display:none; }
+    .order-expand-inner.open { display:block; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+  <div class="navbar-links">
+    <a href="index.html">Browse Store</a>
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Seller Menu</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="active" onclick="showTab('overview',this)"><span class="nav-icon">📊</span> Overview</a>
+      <a href="#" onclick="showTab('store',this)"><span class="nav-icon">🏪</span> My Store</a>
+      <a href="#" onclick="showTab('products',this)"><span class="nav-icon">🧁</span> Products</a>
+      <a href="#" onclick="showTab('orders',this)"><span class="nav-icon">📦</span> Orders</a>
+      <a href="#" onclick="showTab('profile',this)"><span class="nav-icon">👤</span> Profile</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- ── OVERVIEW TAB ── -->
+    <div id="tab-overview">
+      <h2 class="page-title">📊 Overview</h2>
+      <p class="page-subtitle" id="overview-subtitle">Loading your store data…</p>
+      <div id="store-banner"></div>
+      <div class="stats-grid" id="overview-stats"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+        <div class="card">
+          <div class="card-header"><h4>Recent Orders</h4></div>
+          <div class="card-body" id="recent-orders-list"><p style="color:var(--brown-light);">Loading…</p></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h4>Your Products</h4></div>
+          <div class="card-body" id="recent-products-list"><p style="color:var(--brown-light);">Loading…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STORE TAB ── -->
+    <div id="tab-store" style="display:none;">
+      <h2 class="page-title">🏪 My Store</h2>
+      <p class="page-subtitle">Manage your bakery profile.</p>
+      <div id="store-setup-area"></div>
+    </div>
+
+    <!-- ── PRODUCTS TAB ── -->
+    <div id="tab-products" style="display:none;">
+      <div class="section-header">
+        <div>
+          <h2 class="page-title">🧁 Products</h2>
+          <p class="page-subtitle">Manage your product catalogue.</p>
+        </div>
+        <button class="btn btn-orange" onclick="openProductModal()">+ Add Product</button>
+      </div>
+      <div id="products-banner" class="hidden" style="margin-bottom:1rem;"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Available</th><th>Actions</th></tr></thead>
+          <tbody id="products-tbody"></tbody>
+        </table>
+      </div>
+      <div id="products-empty" class="empty-state hidden"><div class="empty-icon">🧁</div><p>No products yet. Add your first product!</p></div>
+    </div>
+
+    <!-- ── ORDERS TAB ── -->
+    <div id="tab-orders" style="display:none;">
+      <h2 class="page-title">📦 Incoming Orders</h2>
+      <p class="page-subtitle">Manage and advance order statuses.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Earnings</th><th>Status</th><th>Date</th><th>Advance</th><th>Details</th></tr></thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+      <div id="seller-orders-empty" class="empty-state hidden"><div class="empty-icon">📦</div><p>No orders yet.</p></div>
+      <button class="btn btn-outline load-more-btn hidden" id="seller-orders-more" onclick="loadMoreSellerOrders()">Load More</button>
+    </div>
+
+    <!-- ── PROFILE TAB ── -->
+    <div id="tab-profile" style="display:none;">
+      <h2 class="page-title">👤 Profile</h2>
+      <p class="page-subtitle">Update your account details.</p>
+      <div class="profile-card" style="max-width:520px; background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); padding:1.6rem;">
+        <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--brown),var(--orange));display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;margin-bottom:1rem;">🏪</div>
+        <h3 id="p-username" style="margin-bottom:4px;"></h3>
+        <p id="p-role" style="color:var(--brown-light);font-size:0.85rem;margin-bottom:1.2rem;"></p>
+        <form id="profile-form">
+          <div class="form-group"><label>Email</label><input type="email" id="p-email" class="form-control" /></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="p-phone" class="form-control" /></div>
+          <button type="submit" class="btn btn-primary" id="p-save-btn">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="product-modal-title">Add Product</h3>
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="product-form">
+        <div class="form-group"><label>Product Name *</label><input type="text" id="pf-name" class="form-control" required placeholder="e.g. Chocolate Truffle Cake" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group"><label>Price (₹) *</label><input type="number" id="pf-price" class="form-control" required min="0" step="0.01" placeholder="499.00" /></div>
+          <div class="form-group"><label>Stock *</label><input type="number" id="pf-stock" class="form-control" required min="0" placeholder="10" /></div>
+        </div>
+        <div class="form-group"><label>Category</label><select id="pf-category" class="form-control"><option value="">— Select Category —</option></select></div>
+        <div class="form-group"><label>Description</label><textarea id="pf-desc" class="form-control" rows="3" placeholder="Describe your product…"></textarea></div>
+        <div class="form-group"><label>Image URL <span style="font-weight:400;color:var(--brown-light);">(optional)</span></label><input type="text" id="pf-image" class="form-control" placeholder="https://… or leave blank" /></div>
+        <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+          <label style="margin:0;">Available</label>
+          <label class="toggle-avail"><input type="checkbox" id="pf-available" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input type="hidden" id="pf-id" />
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeProductModal()">Cancel</button>
+      <button class="btn btn-orange" id="product-save-btn" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Store Modal -->
+<div class="modal-overlay" id="store-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="store-modal-title">Register Your Store</h3>
+      <button class="modal-close" onclick="closeStoreModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="store-form">
+        <div class="form-group"><label>Store Name *</label><input type="text" id="sf-name" class="form-control" required placeholder="e.g. Bakehouse Mumbai" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group"><label>City *</label><input type="text" id="sf-city" class="form-control" required placeholder="Mumbai" /></div>
+          <div class="form-group"><label>Address</label><input type="text" id="sf-address" class="form-control" placeholder="Street, Area" /></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="sf-desc" class="form-control" rows="3" placeholder="Tell customers about your bakery…"></textarea></div>
+        <input type="hidden" id="sf-mode" value="register" />
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeStoreModal()">Cancel</button>
+      <button class="btn btn-orange" id="store-save-btn" onclick="saveStore()">Submit Store</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+  const user = requireAuth(["seller"]);
+  if (!user) throw new Error("Not authorized");
+
+  let myStore = null;
+  let categories = [];
+  let sellerOrdersPage = 1, sellerOrdersHasNext = false;
+  const SELLER_STATUSES = ["pending","confirmed","baking","out_for_delivery","cancelled"];
+
+  // ── Tab switch ─────────────────────────────────────────────
+  function showTab(name, el) {
+    if (el) { event.preventDefault(); document.querySelectorAll(".sidebar-nav a").forEach(a => a.classList.remove("active")); el.classList.add("active"); }
+    ["overview","store","products","orders","profile"].forEach(t => document.getElementById("tab-"+t).style.display = t===name?"block":"none");
+    if (name==="overview") loadOverview();
+    if (name==="store")    loadStoreTab();
+    if (name==="products") loadProducts();
+    if (name==="orders")   loadSellerOrders(true);
+    if (name==="profile")  loadProfile();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadCategories();
+    loadOverview();
+  });
+
+  // ── Categories ─────────────────────────────────────────────
+  async function loadCategories() {
+    try {
+      const d = await Products.categories();
+      categories = d.results || d;
+      const sel = document.getElementById("pf-category");
+      categories.forEach(c => { const o = document.createElement("option"); o.value=c.id; o.textContent=c.name; sel.appendChild(o); });
+    } catch {}
+  }
+
+  // ── Overview ───────────────────────────────────────────────
+  async function loadOverview() {
+    try {
+      myStore = await Stores.myStore();
+    } catch { myStore = null; }
+
+    // Banner
+    const bannerEl = document.getElementById("store-banner");
+    if (!myStore) {
+      bannerEl.innerHTML = `<div class="store-status-banner pending"><span class="banner-icon">🏪</span><div><strong>No store yet.</strong> Register your bakery to start selling.<button class="btn btn-orange btn-sm" style="margin-left:12px;" onclick="showTab('store')">Register Store</button></div></div>`;
+      document.getElementById("overview-subtitle").textContent = "Set up your store to start selling.";
+    } else {
+      const map = {approved:"approved",pending:"pending",suspended:"suspended"};
+      const cls = map[myStore.status] || "pending";
+      const msgs = { approved:"Your store is live and accepting orders.", pending:"Your store is under review. Products won't appear publicly until approved.", suspended:"Your store has been suspended by admin." };
+      bannerEl.innerHTML = `<div class="store-status-banner ${cls}"><span class="banner-icon">${cls==="approved"?"✅":cls==="suspended"?"🚫":"⏳"}</span><strong>${myStore.name}</strong> — ${msgs[myStore.status]}</div>`;
+      document.getElementById("overview-subtitle").textContent = "Welcome back, " + user.username + "!";
+    }
+
+    // Stats
+    let products=[], orders=[];
+    try { const d = await Products.myProducts(); products = d.results||d; } catch {}
+    try { const d = await Orders.sellerOrders(); orders = d.results||d; } catch {}
+    const totalEarnings = orders.reduce((s,o)=>s+parseFloat(o.seller_earnings||0),0);
+    const pendingOrders = orders.filter(o=>o.status==="pending").length;
+    document.getElementById("overview-stats").innerHTML = `
+      <div class="stat-card"><div class="stat-value">${products.length}</div><div class="stat-label">Products</div></div>
+      <div class="stat-card orange"><div class="stat-value">${orders.length}</div><div class="stat-label">Total Orders</div></div>
+      <div class="stat-card green"><div class="stat-value">₹${totalEarnings.toFixed(0)}</div><div class="stat-label">Total Earnings</div></div>
+      <div class="stat-card blue"><div class="stat-value">${pendingOrders}</div><div class="stat-label">Pending Orders</div></div>`;
+
+    // Recent orders
+    const recentOL = document.getElementById("recent-orders-list");
+    if (!orders.length) { recentOL.innerHTML = `<div class="empty-state"><p>No orders yet.</p></div>`; }
+    else recentOL.innerHTML = orders.slice(0,5).map(o=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-dark);">
+        <div><div style="font-weight:600;font-size:0.9rem;">Order #${o.id} — ${o.customer_name}</div><div style="font-size:0.78rem;color:var(--brown-light);">${fmtDate(o.created_at)}</div></div>
+        <div style="display:flex;gap:8px;align-items:center;"><span style="font-weight:700;color:var(--orange);">₹${o.total_price}</span>${statusBadge(o.status)}</div>
+      </div>`).join("");
+
+    // Recent products
+    const recentPL = document.getElementById("recent-products-list");
+    if (!products.length) { recentPL.innerHTML = `<div class="empty-state"><p>No products yet.</p></div>`; }
+    else recentPL.innerHTML = products.slice(0,5).map(p=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--cream-dark);">
+        <div><div style="font-weight:600;font-size:0.9rem;">${p.name}</div><div style="font-size:0.78rem;color:var(--brown-light);">₹${p.price} · Stock: ${p.stock}</div></div>
+        ${statusBadge(p.is_available?"approved":"suspended")}
+      </div>`).join("");
+  }
+
+  // ── STORE TAB ──────────────────────────────────────────────
+  async function loadStoreTab() {
+    try { myStore = await Stores.myStore(); } catch { myStore = null; }
+    const area = document.getElementById("store-setup-area");
+    if (!myStore) {
+      area.innerHTML = `
+        <div class="no-store-card">
+          <div class="icon">🏪</div>
+          <h3>Register Your Bakery</h3>
+          <p style="margin:1rem 0;">Set up your store to list products and receive orders. Admin will review and approve it.</p>
+          <button class="btn btn-orange btn-lg" onclick="openStoreModal('register')">Register Store</button>
+        </div>`;
+    } else {
+      const cls = myStore.status;
+      area.innerHTML = `
+        <div class="store-status-banner ${cls}">
+          <span class="banner-icon">${cls==="approved"?"✅":cls==="suspended"?"🚫":"⏳"}</span>
+          <div>Status: <strong>${myStore.status}</strong>${myStore.status==="pending"?" — Awaiting admin approval":""}</div>
+        </div>
+        <div class="card" style="max-width:600px;">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <h3>${myStore.name}</h3>
+            <button class="btn btn-outline btn-sm" onclick="openStoreModal('update')">Edit Store</button>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div><strong>City</strong><p>${myStore.city||"—"}</p></div>
+              <div><strong>Address</strong><p>${myStore.address||"—"}</p></div>
+              <div><strong>Commission Rate</strong><p>${myStore.commission_rate}%</p></div>
+              <div><strong>Owner</strong><p>${myStore.owner}</p></div>
+            </div>
+            ${myStore.description?`<div style="margin-top:1rem;"><strong>Description</strong><p>${myStore.description}</p></div>`:""}
+            <p style="font-size:0.78rem;color:var(--brown-light);margin-top:1rem;">Registered: ${fmtDate(myStore.created_at)}</p>
+          </div>
+        </div>`;
+    }
+  }
+
+  function openStoreModal(mode) {
+    document.getElementById("sf-mode").value = mode;
+    document.getElementById("store-modal-title").textContent = mode==="register" ? "Register Your Store" : "Edit Store";
+    document.getElementById("store-save-btn").textContent = mode==="register" ? "Submit Store" : "Save Changes";
+    if (mode==="update" && myStore) {
+      document.getElementById("sf-name").value    = myStore.name||"";
+      document.getElementById("sf-city").value    = myStore.city||"";
+      document.getElementById("sf-address").value = myStore.address||"";
+      document.getElementById("sf-desc").value    = myStore.description||"";
+    } else {
+      document.getElementById("store-form").reset();
+    }
+    document.getElementById("store-modal").classList.add("open");
+  }
+  function closeStoreModal() { document.getElementById("store-modal").classList.remove("open"); }
+
+  async function saveStore() {
+    const mode    = document.getElementById("sf-mode").value;
+    const payload = {
+      name:        document.getElementById("sf-name").value.trim(),
+      city:        document.getElementById("sf-city").value.trim(),
+      address:     document.getElementById("sf-address").value.trim(),
+      description: document.getElementById("sf-desc").value.trim(),
+    };
+    const btn = document.getElementById("store-save-btn");
+    setLoading(btn, true);
+    try {
+      if (mode==="register") await Stores.register(payload);
+      else                   await Stores.updateMyStore(payload);
+      toast(mode==="register" ? "Store registered! Awaiting admin approval." : "Store updated successfully ✓");
+      closeStoreModal();
+      loadStoreTab();
+      loadOverview();
+    } catch (e) { toast(parseError(e), "error"); }
+    setLoading(btn, false);
+  }
+
+  // ── PRODUCTS ───────────────────────────────────────────────
+  async function loadProducts() {
+    try {
+      const d = await Products.myProducts();
+      const items = d.results||d;
+      const tbody = document.getElementById("products-tbody");
+      tbody.innerHTML = "";
+      if (!items.length) { document.getElementById("products-empty").classList.remove("hidden"); return; }
+      document.getElementById("products-empty").classList.add("hidden");
+      items.forEach(p => tbody.appendChild(buildProductRow(p)));
+    } catch { toast("Failed to load products","error"); }
+  }
+
+  function buildProductRow(p) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><div class="product-table-img">${productImg(p.image)}</div></td>
+      <td><div class="product-row-name">${p.name}</div><div class="product-row-store">${p.category_name||"—"}</div></td>
+      <td style="font-weight:700;color:var(--orange);">₹${p.price}</td>
+      <td>${p.stock}</td>
+      <td><span class="badge badge-secondary">${p.category_name||"—"}</span></td>
+      <td>
+        <label class="toggle-avail">
+          <input type="checkbox" ${p.is_available?"checked":""} onchange="toggleAvailable(${p.id},this.checked)" />
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="openProductModal(${JSON.stringify(p).replace(/"/g,"&quot;")})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Delete</button>
+      </td>`;
+    return tr;
+  }
+
+  async function toggleAvailable(id, val) {
+    try { await Products.updateProduct(id, {is_available:val}); toast(val?"Product set available":"Product hidden"); }
+    catch(e){ toast(parseError(e),"error"); }
+  }
+
+  function openProductModal(p=null) {
+    document.getElementById("product-modal-title").textContent = p ? "Edit Product" : "Add Product";
+    document.getElementById("product-save-btn").textContent    = p ? "Save Changes"  : "Add Product";
+    if (p) {
+      document.getElementById("pf-id").value        = p.id;
+      document.getElementById("pf-name").value      = p.name||"";
+      document.getElementById("pf-price").value     = p.price||"";
+      document.getElementById("pf-stock").value     = p.stock||"";
+      document.getElementById("pf-desc").value      = p.description||"";
+      document.getElementById("pf-image").value     = p.image==="nill"?"":p.image||"";
+      document.getElementById("pf-available").checked = p.is_available;
+      document.getElementById("pf-category").value  = p.category||"";
+    } else {
+      document.getElementById("product-form").reset();
+      document.getElementById("pf-id").value = "";
+      document.getElementById("pf-available").checked = true;
+    }
+    document.getElementById("product-modal").classList.add("open");
+  }
+  function closeProductModal() { document.getElementById("product-modal").classList.remove("open"); }
+
+  async function saveProduct() {
+    const id  = document.getElementById("pf-id").value;
+    const img = document.getElementById("pf-image").value.trim();
+    const payload = {
+      name:         document.getElementById("pf-name").value.trim(),
+      price:        document.getElementById("pf-price").value,
+      stock:        parseInt(document.getElementById("pf-stock").value),
+      description:  document.getElementById("pf-desc").value.trim(),
+      image:        img||"nill",
+      is_available: document.getElementById("pf-available").checked,
+    };
+    const catVal = document.getElementById("pf-category").value;
+    if (catVal) payload.category = parseInt(catVal);
+    const btn = document.getElementById("product-save-btn");
+    setLoading(btn, true);
+    try {
+      if (id) await Products.updateProduct(id, payload);
+      else    await Products.addProduct(payload);
+      toast(id ? "Product updated ✓" : "Product added! 🧁");
+      closeProductModal();
+      loadProducts();
+    } catch(e){ toast(parseError(e),"error"); }
+    setLoading(btn, false);
+  }
+
+  async function deleteProduct(id) {
+    if (!confirm("Delete this product? This cannot be undone.")) return;
+    try { await Products.deleteProduct(id); toast("Product deleted"); loadProducts(); }
+    catch(e){ toast(parseError(e),"error"); }
+  }
+
+  // ── SELLER ORDERS ──────────────────────────────────────────
+  async function loadSellerOrders(reset=false) {
+    if (reset) { sellerOrdersPage=1; document.getElementById("orders-tbody").innerHTML=""; }
+    try {
+      const d = await Orders.sellerOrders();
+      const items = d.results||d;
+      sellerOrdersHasNext = !!d.next;
+      if (!items.length && reset) { document.getElementById("seller-orders-empty").classList.remove("hidden"); return; }
+      document.getElementById("seller-orders-empty").classList.add("hidden");
+      const tbody = document.getElementById("orders-tbody");
+      items.forEach(o => {
+        const tr = document.createElement("tr");
+        const nextStatuses = getNextStatuses(o.status);
+        tr.innerHTML = `
+          <td style="font-weight:700;">#${o.id}</td>
+          <td>${o.customer_name}</td>
+          <td style="font-weight:700;color:var(--orange);">₹${o.total_price}</td>
+          <td style="color:var(--green);font-weight:600;">₹${o.seller_earnings}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td style="font-size:0.8rem;">${fmtDate(o.created_at)}</td>
+          <td>
+            ${nextStatuses.length ? `<select class="order-status-select" onchange="advanceOrderStatus(${o.id},this.value,this)">
+              <option value="">Advance…</option>
+              ${nextStatuses.map(s=>`<option value="${s}">${s.replace(/_/g," ")}</option>`).join("")}
+            </select>` : `<span style="color:var(--brown-light);font-size:0.82rem;">${o.status==="delivered"?"Complete":"Cancelled"}</span>`}
+          </td>
+          <td><button class="btn btn-outline btn-sm" onclick="toggleOrderExpand(this, ${o.id})">View</button></td>`;
+        const expandTr = document.createElement("tr");
+        expandTr.className = "order-expand-row";
+        expandTr.innerHTML = `<td colspan="8"><div class="order-expand-inner" id="expand-${o.id}">
+          <strong>Items:</strong>
+          ${o.items.map(it=>`<div style="padding:4px 0;font-size:0.88rem;">${it.product.name} × ${it.quantity} — ₹${it.subtotal}</div>`).join("")}
+        </div></td>`;
+        tbody.appendChild(tr);
+        tbody.appendChild(expandTr);
+      });
+      document.getElementById("seller-orders-more").classList.toggle("hidden", !sellerOrdersHasNext);
+    } catch { toast("Failed to load orders","error"); }
+  }
+
+  function toggleOrderExpand(btn, id) {
+    const el = document.getElementById("expand-"+id);
+    el.classList.toggle("open");
+    btn.textContent = el.classList.contains("open") ? "Hide" : "View";
+  }
+
+  function getNextStatuses(status) {
+    const flow = { pending:["confirmed","cancelled"], confirmed:["baking","cancelled"], baking:["out_for_delivery","cancelled"], out_for_delivery:[], delivered:[], cancelled:[] };
+    return flow[status]||[];
+  }
+
+  async function advanceOrderStatus(id, status, sel) {
+    if (!status) return;
+    try {
+      await Orders.sellerUpdateStatus(id, status);
+      toast("Order #"+id+" → "+status.replace(/_/g," "));
+      loadSellerOrders(true);
+    } catch(e){ toast(parseError(e),"error"); sel.value=""; }
+  }
+
+  function loadMoreSellerOrders() { sellerOrdersPage++; loadSellerOrders(false); }
+
+  // ── PROFILE ───────────────────────────────────────────────
+  async function loadProfile() {
+    try {
+      const u = await Auth.getProfile();
+      document.getElementById("p-username").textContent = u.username;
+      document.getElementById("p-role").textContent = "Role: seller · ID: " + u.id;
+      document.getElementById("p-email").value = u.email||"";
+      document.getElementById("p-phone").value = u.phone||"";
+    } catch {}
+  }
+  document.getElementById("profile-form").addEventListener("submit", async e => {
+    e.preventDefault();
+    const btn = document.getElementById("p-save-btn");
+    setLoading(btn,true);
+    try {
+      await Auth.updateProfile({ email:document.getElementById("p-email").value, phone:document.getElementById("p-phone").value });
+      toast("Profile updated ✓");
+    } catch(e){ toast(parseError(e),"error"); }
+    setLoading(btn,false);
+  });
+</script>
+</body>
+</html>

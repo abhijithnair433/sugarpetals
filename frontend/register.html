@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register — SugarPetals</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { display:flex; flex-direction:column; min-height:100vh; background:var(--cream); }
+    .auth-wrapper {
+      flex:1; display:flex; align-items:center; justify-content:center; padding:2rem;
+      background: linear-gradient(160deg, var(--cream) 0%, var(--cream-dark) 100%);
+    }
+    .auth-card { background:var(--warm-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:100%; max-width:500px; overflow:hidden; }
+    .auth-header { background:linear-gradient(135deg,var(--espresso),var(--brown-dark)); padding:2rem; text-align:center; }
+    .auth-header .brand { font-family:var(--font-heading); font-size:1.8rem; color:var(--cream); }
+    .auth-header p { color:var(--brown-light); font-size:0.9rem; margin-top:6px; }
+    .auth-body { padding:2rem; }
+    .auth-footer { text-align:center; padding:1rem 2rem 1.5rem; color:var(--brown-light); font-size:0.9rem; }
+    .auth-footer a { color:var(--brown); font-weight:600; }
+    .role-selector { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:1.5rem; }
+    .role-option { position:relative; }
+    .role-option input { position:absolute; opacity:0; }
+    .role-option label {
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      padding:14px 8px; border:2px solid var(--cream-dark); border-radius:var(--radius-md);
+      cursor:pointer; transition:all var(--transition); text-align:center;
+      font-size:0.85rem; font-weight:600; color:var(--brown);
+    }
+    .role-option label .role-icon { font-size:1.6rem; }
+    .role-option input:checked + label { border-color:var(--brown); background:var(--cream-dark); color:var(--brown-dark); }
+    .role-option label:hover { border-color:var(--brown-light); background:var(--cream); }
+    .delivery-extra { display:none; background:var(--cream); border-radius:var(--radius-md); padding:1.2rem; margin-top:1rem; border:1px solid var(--cream-dark); }
+    .delivery-extra.show { display:block; }
+    .error-box { background:#fdecea; border:1px solid #f5c6c6; color:var(--red); padding:10px 14px; border-radius:var(--radius-sm); font-size:0.88rem; margin-bottom:1rem; display:none; }
+    .step-indicator { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:1.5rem; }
+    .step { width:28px; height:28px; border-radius:50%; background:var(--cream-dark); color:var(--brown-light); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+    .step.active { background:var(--brown); color:var(--cream); }
+    .step.done { background:var(--green); color:#fff; }
+    .step-line { flex:1; height:2px; background:var(--cream-dark); max-width:40px; }
+    .role-desc { font-size:0.8rem; color:var(--brown-light); text-align:center; margin-bottom:1rem; padding:8px 12px; background:var(--cream); border-radius:var(--radius-sm); }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+    <div class="navbar-links">
+      <a href="index.html">Browse</a>
+      <a href="login.html">Login</a>
+    </div>
+  </nav>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand">🍰 Create Account</div>
+        <p>Join SugarPetals today</p>
+      </div>
+      <div class="auth-body">
+
+        <!-- Step indicator -->
+        <div class="step-indicator" id="step-indicator">
+          <div class="step active" id="step1">1</div>
+          <div class="step-line"></div>
+          <div class="step" id="step2">2</div>
+          <div class="step-line" id="step-line-2" style="display:none"></div>
+          <div class="step" id="step3" style="display:none">3</div>
+        </div>
+
+        <div class="error-box" id="error-box"></div>
+
+        <!-- Step 1: Role selection -->
+        <div id="form-step-1">
+          <h4 style="margin-bottom:1rem; text-align:center;">Choose your role</h4>
+          <div class="role-selector">
+            <div class="role-option">
+              <input type="radio" name="role" id="role-customer" value="customer" checked />
+              <label for="role-customer"><span class="role-icon">👤</span>Customer<small style="color:var(--brown-light);font-weight:400">Browse & order</small></label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="role" id="role-seller" value="seller" />
+              <label for="role-seller"><span class="role-icon">🏪</span>Seller<small style="color:var(--brown-light);font-weight:400">Sell your bakes</small></label>
+            </div>
+            <div class="role-option">
+              <input type="radio" name="role" id="role-delivery" value="delivery" />
+              <label for="role-delivery"><span class="role-icon">🚴</span>Delivery<small style="color:var(--brown-light);font-weight:400">Deliver orders</small></label>
+            </div>
+          </div>
+          <div class="role-desc" id="role-desc">Browse stores, add to cart, and place orders for delicious baked goods.</div>
+          <button class="btn btn-primary btn-full" onclick="goStep2()">Continue →</button>
+        </div>
+
+        <!-- Step 2: Account details -->
+        <div id="form-step-2" style="display:none">
+          <h4 style="margin-bottom:1rem; text-align:center;">Account Details</h4>
+          <form id="register-form">
+            <div class="form-group">
+              <label>Username</label>
+              <input type="text" id="reg-username" class="form-control" placeholder="Choose a username" required />
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" class="form-control" placeholder="your@email.com" required />
+              </div>
+              <div class="form-group">
+                <label>Phone <span style="color:var(--brown-light);font-weight:400">(optional)</span></label>
+                <input type="text" id="reg-phone" class="form-control" placeholder="+91 XXXXXXXXXX" />
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="reg-password" class="form-control" placeholder="Min 8 characters" required minlength="8" />
+              </div>
+              <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="reg-confirm" class="form-control" placeholder="Repeat password" required />
+              </div>
+            </div>
+
+            <!-- Delivery agent extra fields -->
+            <div class="delivery-extra" id="delivery-extra">
+              <p style="font-weight:700; color:var(--brown-dark); margin-bottom:1rem;">🚴 Delivery Agent Info</p>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="form-group">
+                  <label>City</label>
+                  <input type="text" id="agent-city" class="form-control" placeholder="e.g. Mumbai" />
+                </div>
+                <div class="form-group">
+                  <label>Vehicle Type</label>
+                  <select id="agent-vehicle" class="form-control">
+                    <option value="bike">Bike</option>
+                    <option value="scooter">Scooter</option>
+                    <option value="bicycle">Bicycle</option>
+                    <option value="car">Car</option>
+                  </select>
+                </div>
+              </div>
+              <small style="color:var(--brown-light);">Your agent profile will be created automatically after registration.</small>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:1rem;">
+              <button type="button" class="btn btn-outline" onclick="goStep1()">← Back</button>
+              <button type="submit" class="btn btn-primary btn-full" id="register-btn">Create Account</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="form-step-3" style="display:none; text-align:center; padding:1rem 0;">
+          <div style="font-size:4rem; margin-bottom:1rem;">🎉</div>
+          <h3>Account Created!</h3>
+          <p style="margin:1rem 0;">Welcome to SugarPetals, <strong id="success-name"></strong>!</p>
+          <p style="font-size:0.85rem; color:var(--brown-light);" id="success-msg"></p>
+          <button class="btn btn-primary btn-lg mt-3" onclick="window.location.href='login.html'">Sign In Now</button>
+        </div>
+      </div>
+      <div class="auth-footer" id="auth-footer-link">
+        Already have an account? <a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const roleDescs = {
+      customer:  "Browse stores, add to cart, and place orders for delicious baked goods.",
+      seller:    "Set up your bakery store, list your products, and manage incoming orders.",
+      delivery:  "Register as a delivery agent, accept assigned runs, and update delivery status."
+    };
+
+    document.querySelectorAll('input[name="role"]').forEach(r => {
+      r.addEventListener("change", () => {
+        document.getElementById("role-desc").textContent = roleDescs[r.value];
+      });
+    });
+
+    function getSelectedRole() {
+      return document.querySelector('input[name="role"]:checked').value;
+    }
+
+    function goStep2() {
+      document.getElementById("form-step-1").style.display = "none";
+      document.getElementById("form-step-2").style.display = "block";
+      document.getElementById("step1").className = "step done";
+      document.getElementById("step2").className = "step active";
+      const role = getSelectedRole();
+      if (role === "delivery") {
+        document.getElementById("delivery-extra").classList.add("show");
+        document.getElementById("step-line-2").style.display = "block";
+        document.getElementById("step3").style.display = "flex";
+      }
+    }
+
+    function goStep1() {
+      document.getElementById("form-step-2").style.display = "none";
+      document.getElementById("form-step-1").style.display = "block";
+      document.getElementById("step1").className = "step active";
+      document.getElementById("step2").className = "step";
+    }
+
+    const errBox = document.getElementById("error-box");
+    function showError(msg) { errBox.textContent = msg; errBox.style.display = "block"; }
+    function hideError()    { errBox.style.display = "none"; }
+
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+      const role     = getSelectedRole();
+      const username = document.getElementById("reg-username").value.trim();
+      const email    = document.getElementById("reg-email").value.trim();
+      const phone    = document.getElementById("reg-phone").value.trim();
+      const password = document.getElementById("reg-password").value;
+      const confirm  = document.getElementById("reg-confirm").value;
+
+      if (password !== confirm) { showError("Passwords do not match."); return; }
+
+      const btn = document.getElementById("register-btn");
+      setLoading(btn, true);
+
+      try {
+        const payload = { username, email, password, role };
+        if (phone) payload.phone = phone;
+        await Auth.register(payload);
+
+        // Auto-login
+        const user = await Auth.login(username, password);
+
+        // If delivery, register agent profile
+        if (role === "delivery") {
+          try {
+            const city    = document.getElementById("agent-city").value.trim();
+            const vehicle = document.getElementById("agent-vehicle").value;
+            await Delivery.register({ city, vehicle_type: vehicle });
+          } catch (e2) { /* agent profile can be set up later */ }
+          document.getElementById("step2").className = "step done";
+          document.getElementById("step3").className = "step active";
+        }
+
+        document.getElementById("form-step-2").style.display = "none";
+        document.getElementById("form-step-3").style.display = "block";
+        document.getElementById("auth-footer-link").style.display = "none";
+        document.getElementById("success-name").textContent = username;
+        document.getElementById("success-msg").textContent =
+          role === "seller"   ? "Set up your store from the seller dashboard after logging in." :
+          role === "delivery" ? "Your agent profile is ready. Check your dashboard for assignments." :
+          "Start browsing our amazing bakeries!";
+      } catch (err) {
+        showError(parseError(err));
+        setLoading(btn, false);
+      }
+    });
+  </script>
+</body>
+</html>

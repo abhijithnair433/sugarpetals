@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SugarPetals — Artisan Bakeries Delivered</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .hero-stats { display:flex; gap:2rem; justify-content:center; flex-wrap:wrap; margin-top:2rem; position:relative; }
+    .hero-stat  { text-align:center; }
+    .hero-stat .val { font-size:1.8rem; font-weight:700; font-family:var(--font-heading); color:var(--cream); }
+    .hero-stat .lbl { font-size:0.8rem; color:var(--brown-light); text-transform:uppercase; letter-spacing:1px; }
+    .categories-strip { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .cat-chip {
+      padding:6px 16px; border-radius:20px; border:2px solid var(--cream-dark);
+      background:var(--warm-white); color:var(--brown); font-size:0.85rem; font-weight:600;
+      cursor:pointer; transition:all var(--transition);
+    }
+    .cat-chip:hover, .cat-chip.active { background:var(--brown); color:var(--cream); border-color:var(--brown); }
+    .store-card {
+      background:var(--warm-white); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);
+      padding:1.4rem; display:flex; gap:1rem; align-items:flex-start;
+      transition:box-shadow var(--transition), transform var(--transition); cursor:pointer;
+    }
+    .store-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); }
+    .store-icon { font-size:2.2rem; width:50px; height:50px; border-radius:50%; background:var(--cream-dark); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .store-info h4 { margin-bottom:4px; }
+    .store-info p  { font-size:0.82rem; color:var(--brown-light); margin:0; }
+    .store-meta    { display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+    .product-detail-overlay { position:fixed; inset:0; background:rgba(44,26,14,0.6); z-index:500; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; visibility:hidden; transition:all 0.25s; }
+    .product-detail-overlay.open { opacity:1; visibility:visible; }
+    .product-detail-card { background:var(--warm-white); border-radius:var(--radius-lg); max-width:600px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); transform:translateY(20px); transition:transform 0.25s; }
+    .product-detail-overlay.open .product-detail-card { transform:translateY(0); }
+    .pd-img { width:100%; height:260px; overflow:hidden; border-radius:var(--radius-lg) var(--radius-lg) 0 0; }
+    .pd-img img { width:100%; height:100%; object-fit:cover; }
+    .pd-body { padding:1.6rem; }
+    .pd-meta { display:flex; gap:10px; align-items:center; margin-bottom:1rem; flex-wrap:wrap; }
+    .pd-price { font-size:1.6rem; font-weight:700; color:var(--orange); font-family:var(--font-heading); }
+    .pd-actions { display:flex; gap:10px; align-items:center; margin-top:1.2rem; flex-wrap:wrap; }
+    .reviews-list { margin-top:1.2rem; display:flex; flex-direction:column; gap:10px; }
+    .review-item { background:var(--cream); border-radius:var(--radius-sm); padding:10px 14px; }
+    .review-item .ri-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+    .review-item .ri-user { font-weight:700; font-size:0.85rem; color:var(--brown-dark); }
+    .review-item .ri-comment { font-size:0.88rem; color:var(--brown); }
+    .section-tabs { display:flex; gap:0; border-bottom:2px solid var(--cream-dark); margin-bottom:2rem; }
+    .section-tab { padding:12px 24px; background:none; border:none; font-family:var(--font-main); font-size:1rem; font-weight:600; color:var(--brown-light); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all var(--transition); }
+    .section-tab.active { color:var(--brown-dark); border-bottom-color:var(--brown); }
+    .cart-fab { position:fixed; bottom:2rem; right:2rem; z-index:200; background:var(--orange); color:#fff; border:none; border-radius:50px; padding:14px 22px; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:var(--shadow-lg); display:none; align-items:center; gap:8px; transition:all var(--transition); }
+    .cart-fab:hover { background:#b85e1e; transform:translateY(-2px); }
+    .cart-count { background:#fff; color:var(--orange); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.78rem; font-weight:900; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand"><span class="logo-icon">🍰</span> SugarPetals</a>
+  <div class="navbar-links">
+    <a href="index.html" class="active">Browse</a>
+    <a href="#stores-section">Stores</a>
+    <a href="login.html" id="nav-login-link">Login</a>
+    <div id="nav-user"></div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>Fresh Bakes, Delivered 🍞</h1>
+  <p>Discover handcrafted cakes, breads, and pastries from local artisan bakeries near you.</p>
+  <div class="hero-actions">
+    <a href="#products-section" class="btn btn-orange btn-lg">Explore Products</a>
+    <a href="register.html" class="btn btn-outline btn-lg" style="border-color:var(--brown-light);color:var(--cream);" id="hero-cta-register">Start Selling</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="val" id="stat-products">—</div><div class="lbl">Products</div></div>
+    <div class="hero-stat"><div class="val" id="stat-stores">—</div><div class="lbl">Bakeries</div></div>
+    <div class="hero-stat"><div class="val" id="stat-categories">—</div><div class="lbl">Categories</div></div>
+  </div>
+</section>
+
+<div class="container page-content">
+
+  <!-- Section Tabs -->
+  <div class="section-tabs">
+    <button class="section-tab active" onclick="switchSection('products')">🧁 Products</button>
+    <button class="section-tab" onclick="switchSection('stores')">🏪 Bakeries</button>
+  </div>
+
+  <!-- PRODUCTS SECTION -->
+  <div id="products-section">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="form-group" style="flex:2; min-width:200px;">
+        <label>Search</label>
+        <input type="text" id="search-input" class="form-control" placeholder="Search cakes, breads…" />
+      </div>
+      <div class="form-group">
+        <label>Min Price (₹)</label>
+        <input type="number" id="min-price" class="form-control" placeholder="0" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Max Price (₹)</label>
+        <input type="number" id="max-price" class="form-control" placeholder="5000" min="0" />
+      </div>
+      <div class="form-group">
+        <label>Store</label>
+        <select id="store-filter" class="form-control">
+          <option value="">All Stores</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px; align-items:flex-end;">
+        <button class="btn btn-primary" onclick="applyFilters()">Search</button>
+        <button class="btn btn-outline" onclick="clearFilters()">Clear</button>
+      </div>
+    </div>
+
+    <!-- Category chips -->
+    <div class="categories-strip" id="categories-strip">
+      <div class="cat-chip active" data-id="" onclick="filterByCategory(this,'')">All</div>
+    </div>
+
+    <!-- Products grid -->
+    <div class="grid-3" id="products-grid"></div>
+    <div id="products-empty" class="empty-state hidden">
+      <div class="empty-icon">🔍</div>
+      <p>No products found. Try adjusting filters.</p>
+    </div>
+    <button class="btn btn-outline load-more-btn hidden" id="load-more-btn" onclick="loadMoreProducts()">Load More</button>
+  </div>
+
+  <!-- STORES SECTION -->
+  <div id="stores-section" style="display:none;">
+    <div class="grid-2" id="stores-grid"></div>
+    <div id="stores-empty" class="empty-state hidden">
+      <div class="empty-icon">🏪</div><p>No approved stores yet.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Floating Cart Button (for logged-in customers) -->
+<button class="cart-fab" id="cart-fab" onclick="window.location.href='customer.html#cart'">
+  🛒 Cart <span class="cart-count" id="cart-count">0</span>
+</button>
+
+<!-- Product Detail Modal -->
+<div class="product-detail-overlay" id="pd-overlay" onclick="closePD(event)">
+  <div class="product-detail-card" id="pd-card">
+    <div class="pd-img" id="pd-img"></div>
+    <div class="pd-body">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+        <div>
+          <h2 id="pd-name"></h2>
+          <p id="pd-store" style="font-size:0.85rem; color:var(--brown-light); margin-top:4px;"></p>
+        </div>
+        <button class="modal-close" onclick="closePD()">✕</button>
+      </div>
+      <div class="pd-meta">
+        <span class="pd-price" id="pd-price"></span>
+        <span id="pd-category" class="badge badge-secondary"></span>
+        <span id="pd-stock"></span>
+      </div>
+      <p id="pd-desc" style="margin-bottom:1rem;"></p>
+      <hr class="divider" />
+      <div class="pd-actions">
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-value" id="pd-qty">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <button class="btn btn-orange" id="pd-add-btn" onclick="addToCartFromDetail()">🛒 Add to Cart</button>
+      </div>
+      <hr class="divider" />
+      <h4>Customer Reviews</h4>
+      <div id="pd-reviews" class="reviews-list"></div>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script>
+  // ── State ────────────────────────────────────────────────
+  let currentPage = 1;
+  let hasNextPage = false;
+  let activeFilters = {};
+  let activeCategoryId = "";
+  let currentProduct = null;
+  let pdQty = 1;
+  const user = getUser();
+  const role = getRole();
+
+  // ── Init ─────────────────────────────────────────────────
+  document.addEventListener("DOMContentLoaded", async () => {
+    // Hide login link if logged in; show cart FAB for customers
+    if (user) {
+      document.getElementById("nav-login-link").style.display = "none";
+      if (role === "customer") showCartFab();
+      if (role === "seller" || role === "admin") {
+        document.getElementById("hero-cta-register").style.display = "none";
+      }
+    }
+    await Promise.all([loadCategories(), loadStores(), loadProducts(true)]);
+  });
+
+  // ── Section switch ────────────────────────────────────────
+  function switchSection(sec) {
+    document.querySelectorAll(".section-tab").forEach(t => t.classList.remove("active"));
+    event.target.classList.add("active");
+    document.getElementById("products-section").style.display = sec === "products" ? "block" : "none";
+    document.getElementById("stores-section").style.display   = sec === "stores"   ? "block" : "none";
+  }
+
+  // ── Categories ────────────────────────────────────────────
+  async function loadCategories() {
+    try {
+      const data = await Products.categories();
+      const cats = data.results || data;
+      document.getElementById("stat-categories").textContent = cats.length;
+      const strip = document.getElementById("categories-strip");
+      cats.forEach(c => {
+        const chip = document.createElement("div");
+        chip.className = "cat-chip";
+        chip.dataset.id = c.id;
+        chip.textContent = c.name;
+        chip.onclick = () => filterByCategory(chip, c.id);
+        strip.appendChild(chip);
+      });
+    } catch {}
+  }
+
+  function filterByCategory(el, id) {
+    document.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("active"));
+    el.classList.add("active");
+    activeCategoryId = id;
+    loadProducts(true);
+  }
+
+  // ── Stores ────────────────────────────────────────────────
+  async function loadStores() {
+    try {
+      const data = await Stores.list();
+      const stores = data.results || data;
+      document.getElementById("stat-stores").textContent = stores.length;
+      const sel = document.getElementById("store-filter");
+      const grid = document.getElementById("stores-grid");
+      stores.forEach(s => {
+        // Populate filter dropdown
+        const opt = document.createElement("option");
+        opt.value = s.id; opt.textContent = s.name;
+        sel.appendChild(opt);
+        // Render store card
+        grid.innerHTML += `
+          <div class="store-card" onclick="filterByStore(${s.id}, '${s.name}')">
+            <div class="store-icon">🏪</div>
+            <div class="store-info">
+              <h4>${s.name}</h4>
+              <p>📍 ${s.city || "—"}</p>
+              <p style="margin-top:4px;">${s.description ? s.description.substring(0,80)+"…" : "Artisan bakery"}</p>
+              <div class="store-meta">
+                ${statusBadge(s.status)}
+                <span class="badge badge-secondary">${s.owner}</span>
+              </div>
+            </div>
+          </div>`;
+      });
+      if (!stores.length) document.getElementById("stores-empty").classList.remove("hidden");
+    } catch {}
+  }
+
+  function filterByStore(id, name) {
+    switchSection("products");
+    document.querySelectorAll(".section-tab")[0].classList.add("active");
+    document.querySelectorAll(".section-tab")[1].classList.remove("active");
+    document.getElementById("store-filter").value = id;
+    activeFilters.store = id;
+    loadProducts(true);
+    toast(`Showing products from ${name}`, "info");
+  }
+
+  // ── Products ──────────────────────────────────────────────
+  async function loadProducts(reset = false) {
+    if (reset) { currentPage = 1; document.getElementById("products-grid").innerHTML = ""; }
+    const params = { page: currentPage, ...activeFilters };
+    if (activeCategoryId) params.category = activeCategoryId;
+    try {
+      const data = await Products.list(params);
+      const items = data.results || [];
+      hasNextPage = !!data.next;
+      document.getElementById("stat-products").textContent = data.count || items.length;
+      const grid = document.getElementById("products-grid");
+      if (!items.length && reset) {
+        document.getElementById("products-empty").classList.remove("hidden");
+        document.getElementById("load-more-btn").classList.add("hidden");
+        return;
+      }
+      document.getElementById("products-empty").classList.add("hidden");
+      items.forEach(p => grid.appendChild(buildProductCard(p)));
+      document.getElementById("load-more-btn").classList.toggle("hidden", !hasNextPage);
+    } catch (e) { toast("Failed to load products", "error"); }
+  }
+
+  function buildProductCard(p) {
+    const div = document.createElement("div");
+    div.className = "card product-card";
+    div.innerHTML = `
+      <div class="product-img">${productImg(p.image)}</div>
+      <div class="product-body">
+        <div class="product-name">${p.name}</div>
+        <div class="product-store">🏪 ${p.store_name || "—"} · ${p.category_name || "Uncategorized"}</div>
+        <div class="product-price">₹${p.price}</div>
+      </div>
+      <div class="product-footer">
+        <span class="badge ${p.is_available && p.stock > 0 ? 'badge-success' : 'badge-danger'}">${p.is_available && p.stock > 0 ? 'Available' : 'Out of Stock'}</span>
+        <button class="btn btn-orange btn-sm" onclick="event.stopPropagation(); handleAddToCart(${p.id})">+ Cart</button>
+      </div>`;
+    div.querySelector(".product-body").addEventListener("click", () => openPD(p));
+    div.querySelector(".product-img").addEventListener("click", () => openPD(p));
+    return div;
+  }
+
+  function loadMoreProducts() {
+    currentPage++;
+    loadProducts(false);
+  }
+
+  function applyFilters() {
+    activeFilters = {};
+    const search   = document.getElementById("search-input").value.trim();
+    const minPrice = document.getElementById("min-price").value;
+    const maxPrice = document.getElementById("max-price").value;
+    const store    = document.getElementById("store-filter").value;
+    if (search)   activeFilters.search    = search;
+    if (minPrice) activeFilters.min_price = minPrice;
+    if (maxPrice) activeFilters.max_price = maxPrice;
+    if (store)    activeFilters.store     = store;
+    loadProducts(true);
+  }
+
+  function clearFilters() {
+    document.getElementById("search-input").value = "";
+    document.getElementById("min-price").value    = "";
+    document.getElementById("max-price").value    = "";
+    document.getElementById("store-filter").value = "";
+    document.querySelectorAll(".cat-chip").forEach((c,i) => c.classList.toggle("active", i===0));
+    activeCategoryId = ""; activeFilters = {};
+    loadProducts(true);
+  }
+
+  document.getElementById("search-input").addEventListener("keydown", e => { if (e.key === "Enter") applyFilters(); });
+
+  // ── Add to Cart ────────────────────────────────────────────
+  async function handleAddToCart(productId, qty = 1) {
+    if (!user) { toast("Please log in to add items to cart", "info"); setTimeout(() => window.location.href = "login.html", 1000); return; }
+    if (role !== "customer") { toast("Only customers can add to cart", "info"); return; }
+    try {
+      await Cart.add(productId, qty);
+      toast("Added to cart! 🛒");
+      updateCartCount();
+    } catch (err) { toast(parseError(err), "error"); }
+  }
+
+  async function showCartFab() {
+    document.getElementById("cart-fab").style.display = "flex";
+    updateCartCount();
+  }
+
+  async function updateCartCount() {
+    try {
+      const data = await Cart.get();
+      const items = data.results || data;
+      const total = Array.isArray(items) ? items.reduce((s,i) => s + i.quantity, 0) : 0;
+      document.getElementById("cart-count").textContent = total;
+    } catch {}
+  }
+
+  // ── Product Detail ────────────────────────────────────────
+  function openPD(p) {
+    currentProduct = p; pdQty = 1;
+    document.getElementById("pd-qty").textContent = 1;
+    const imgEl = document.getElementById("pd-img");
+    imgEl.innerHTML = p.image && p.image !== "nill"
+      ? `<img src="${p.image}" alt="${p.name}" onerror="this.parentElement.innerHTML='<div class=\"img-placeholder\" style=\"height:260px\"><span>🍰</span></div>'" />`
+      : `<div class="img-placeholder" style="height:260px"><span>🍰</span></div>`;
+    document.getElementById("pd-name").textContent = p.name;
+    document.getElementById("pd-store").textContent = "🏪 " + (p.store_name || "—");
+    document.getElementById("pd-price").textContent = "₹" + p.price;
+    document.getElementById("pd-category").textContent = p.category_name || "Uncategorized";
+    document.getElementById("pd-stock").innerHTML = `<span class="badge ${p.stock > 0 ? 'badge-success':'badge-danger'}">${p.stock > 0 ? p.stock+' in stock':'Out of stock'}</span>`;
+    document.getElementById("pd-desc").textContent = p.description || "No description available.";
+    document.getElementById("pd-add-btn").disabled = !p.is_available || p.stock <= 0;
+    loadReviews(p.id);
+    document.getElementById("pd-overlay").classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closePD(e) {
+    if (e && e.target !== document.getElementById("pd-overlay") && !e.target.classList.contains("modal-close")) return;
+    if (!e) { document.getElementById("pd-overlay").classList.remove("open"); document.body.style.overflow = ""; return; }
+    document.getElementById("pd-overlay").classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function changeQty(delta) {
+    pdQty = Math.max(1, pdQty + delta);
+    document.getElementById("pd-qty").textContent = pdQty;
+  }
+
+  function addToCartFromDetail() {
+    if (currentProduct) handleAddToCart(currentProduct.id, pdQty);
+  }
+
+  async function loadReviews(productId) {
+    const box = document.getElementById("pd-reviews");
+    box.innerHTML = `<p style="color:var(--brown-light); font-size:0.85rem;">Loading reviews…</p>`;
+    try {
+      const data = await Reviews.forProduct(productId);
+      const items = data.results || data;
+      if (!items.length) { box.innerHTML = `<p style="color:var(--brown-light); font-size:0.85rem;">No reviews yet. Be the first!</p>`; return; }
+      box.innerHTML = items.slice(0,5).map(r => `
+        <div class="review-item">
+          <div class="ri-header">
+            <span class="ri-user">👤 ${r.user}</span>
+            <span class="stars">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span>
+          </div>
+          <div class="ri-comment">${r.comment || "<em>No comment</em>"}</div>
+          <div style="font-size:0.75rem; color:var(--brown-light); margin-top:4px;">${fmtDate(r.created_at)}</div>
+        </div>`).join("");
+    } catch { box.innerHTML = `<p style="color:var(--brown-light); font-size:0.85rem;">Could not load reviews.</p>`; }
+  }
+</script>
+</body>
+</html>
