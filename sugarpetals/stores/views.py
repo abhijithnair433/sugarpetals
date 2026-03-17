@@ -1,56 +1,104 @@
-from rest_framework import generics, status
-from rest_framework.views import APIView
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+
 from .models import Store
-from .serializers import StoreSerializer
-from accounts.permissions import IsSeller
-
-class RegisterStoreView(generics.CreateAPIView):
-    serializer_class = StoreSerializer
-    permission_classes = [IsAuthenticated, IsSeller]  # only sellers can create a store
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)  # auto assign logged in user as owner
+from .serializers import StoreSerializer, StoreRegisterSerializer, AdminStoreStatusSerializer
 
 
-class MyStoreView(generics.RetrieveUpdateAPIView):
-    serializer_class = StoreSerializer
-    permission_classes = [IsAuthenticated, IsSeller]
-
-    def get_object(self):
-        return self.request.user.store  # seller can only see their own store
+# ── Permission helpers ─────────────────────────────────────────────────────────
+class IsSeller(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'seller'
 
 
-class AllStoresView(generics.ListAPIView):
-    # public — customers can browse all approved stores
-    serializer_class = StoreSerializer
-
-    def get_queryset(self):
-        return Store.objects.filter(status='approved')
+class IsAdminUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser)
 
 
-class AdminStoreView(generics.ListAPIView):
-    # admin sees all stores including pending and suspended
-    serializer_class = StoreSerializer
+# ── Public ─────────────────────────────────────────────────────────────────────
+class ApprovedStoreListView(generics.ListAPIView):
+    """GET /stores/  — public listing of approved stores."""
+    serializer_class   = StoreSerializer
+    permission_classes = [permissions.AllowAny]
+    queryset           = Store.objects.filter(status='approved')
+
+
+# ── Seller ─────────────────────────────────────────────────────────────────────
+class StoreRegisterView(APIView):
+    """
+    POST /stores/register/
+    Content-Type: multipart/form-data
+    Fields: name, description, address, city, fssai_number, fssai_certificate (file)
+    """
+    permission_classes = [IsSeller]
+    parser_classes     = [MultiPartParser, FormParser]   # ← required for file upload
+
+    def post(self, request):
+        if Store.objects.filter(owner=request.user).exists():
+            return Response({'error': 'You already have a registered store.'}, status=400)
+
+        serializer = StoreRegisterSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            store = serializer.save()
+            return Response(StoreSerializer(store).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyStoreView(APIView):
+    """GET / PUT  /stores/my-store/"""
+    permission_classes = [IsSeller]
+    parser_classes     = [MultiPartParser, FormParser]
+
+    def get(self, request):
+        try:
+            store = Store.objects.get(owner=request.user)
+            return Response(StoreSerializer(store).data)
+        except Store.DoesNotExist:
+            return Response({'error': 'No store found.'}, status=404)
+
+    def put(self, request):
+        try:
+            store = Store.objects.get(owner=request.user)
+        except Store.DoesNotExist:
+            return Response({'error': 'No store found.'}, status=404)
+
+        serializer = StoreSerializer(store, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+
+# ── Admin ──────────────────────────────────────────────────────────────────────
+class AdminStoreListView(generics.ListAPIView):
+    """GET /stores/admin/all/  — all stores regardless of status."""
+    serializer_class   = StoreSerializer
     permission_classes = [IsAdminUser]
-    queryset = Store.objects.all()
+    queryset           = Store.objects.all().select_related('owner')
 
 
-class AdminApproveStoreView(APIView):
-    # admin approves or suspends a store
+class AdminStoreStatusView(APIView):
+    """
+    PATCH /stores/admin/<id>/status/
+    Body (JSON): { "status": "approved"|"suspended"|"pending", "commission_rate": 12.5, "rejection_reason": "..." }
+    When suspending/rejecting, pass rejection_reason so the seller can see why.
+    """
     permission_classes = [IsAdminUser]
 
     def patch(self, request, pk):
         try:
-            store = Store.objects.get(id=pk)
+            store = Store.objects.get(pk=pk)
         except Store.DoesNotExist:
-            return Response({'error': 'Store not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Store not found.'}, status=404)
 
-        new_status = request.data.get('status')
-        if new_status not in ['approved', 'suspended', 'pending']:
-            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
-
-        store.status = new_status
-        store.save()
-        return Response({'message': f'Store {new_status} successfully'})
+        serializer = AdminStoreStatusSerializer(store, data=request.data, partial=True)
+        if serializer.is_valid():
+            # Auto-clear rejection_reason when approving
+            if request.data.get('status') == 'approved':
+                serializer.validated_data['rejection_reason'] = ''
+            serializer.save()
+            return Response(StoreSerializer(store).data)
+        return Response(serializer.errors, status=400)

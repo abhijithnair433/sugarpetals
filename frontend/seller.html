@@ -29,6 +29,20 @@
     .order-expand-row td { padding:0 !important; background:var(--cream); }
     .order-expand-inner { padding:1rem 1.4rem; display:none; }
     .order-expand-inner.open { display:block; }
+    /* ── FSSAI additions ── */
+    .fssai-section-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--brown-light); margin:1.2rem 0 0.8rem; padding-top:1rem; border-top:1px solid var(--cream-dark); }
+    .file-dropzone { border:2px dashed var(--cream-dark); border-radius:var(--radius-sm); padding:1.1rem 1rem; text-align:center; cursor:pointer; transition:all 0.2s; font-size:0.85rem; color:var(--brown-light); background:var(--cream); }
+    .file-dropzone:hover { border-color:var(--orange); background:#fff8f5; color:var(--orange); }
+    .file-dropzone.selected { border-color:var(--green); background:#f0faf2; color:var(--green); }
+    .fssai-hint { font-size:0.75rem; color:var(--brown-light); margin-top:4px; }
+    .fssai-error { font-size:0.78rem; color:#c62828; margin-top:4px; display:none; }
+    .fssai-number-val { font-family:monospace; font-size:0.92rem; letter-spacing:0.08em; font-weight:600; }
+    .cert-link { font-size:0.82rem; color:var(--orange); text-decoration:none; font-weight:500; }
+    .cert-link:hover { text-decoration:underline; }
+    .rejection-banner { background:#fdecea; border:1px solid #ef9a9a; border-radius:var(--radius-md); padding:1rem 1.4rem; margin-bottom:1.5rem; display:flex; gap:12px; align-items:flex-start; }
+    .rejection-banner .rj-icon { font-size:1.4rem; flex-shrink:0; }
+    .rejection-banner strong { color:#c62828; display:block; margin-bottom:4px; }
+    .rejection-banner p { margin:0; font-size:0.88rem; color:#8b2020; }
   </style>
 </head>
 <body>
@@ -55,7 +69,7 @@
 
   <main class="main-content">
 
-    <!-- ── OVERVIEW TAB ── -->
+    <!-- OVERVIEW -->
     <div id="tab-overview">
       <h2 class="page-title">📊 Overview</h2>
       <p class="page-subtitle" id="overview-subtitle">Loading your store data…</p>
@@ -73,14 +87,14 @@
       </div>
     </div>
 
-    <!-- ── STORE TAB ── -->
+    <!-- STORE -->
     <div id="tab-store" style="display:none;">
       <h2 class="page-title">🏪 My Store</h2>
       <p class="page-subtitle">Manage your bakery profile.</p>
       <div id="store-setup-area"></div>
     </div>
 
-    <!-- ── PRODUCTS TAB ── -->
+    <!-- PRODUCTS -->
     <div id="tab-products" style="display:none;">
       <div class="section-header">
         <div>
@@ -99,7 +113,7 @@
       <div id="products-empty" class="empty-state hidden"><div class="empty-icon">🧁</div><p>No products yet. Add your first product!</p></div>
     </div>
 
-    <!-- ── ORDERS TAB ── -->
+    <!-- ORDERS -->
     <div id="tab-orders" style="display:none;">
       <h2 class="page-title">📦 Incoming Orders</h2>
       <p class="page-subtitle">Manage and advance order statuses.</p>
@@ -113,7 +127,7 @@
       <button class="btn btn-outline load-more-btn hidden" id="seller-orders-more" onclick="loadMoreSellerOrders()">Load More</button>
     </div>
 
-    <!-- ── PROFILE TAB ── -->
+    <!-- PROFILE -->
     <div id="tab-profile" style="display:none;">
       <h2 class="page-title">👤 Profile</h2>
       <p class="page-subtitle">Update your account details.</p>
@@ -132,7 +146,7 @@
   </main>
 </div>
 
-<!-- Product Modal -->
+<!-- Product Modal — unchanged -->
 <div class="modal-overlay" id="product-modal">
   <div class="modal">
     <div class="modal-header">
@@ -163,7 +177,7 @@
   </div>
 </div>
 
-<!-- Store Modal -->
+<!-- Store Modal — FSSAI fields added inside -->
 <div class="modal-overlay" id="store-modal">
   <div class="modal">
     <div class="modal-header">
@@ -172,12 +186,47 @@
     </div>
     <div class="modal-body">
       <form id="store-form">
-        <div class="form-group"><label>Store Name *</label><input type="text" id="sf-name" class="form-control" required placeholder="e.g. Bakehouse Mumbai" /></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-          <div class="form-group"><label>City *</label><input type="text" id="sf-city" class="form-control" required placeholder="Mumbai" /></div>
-          <div class="form-group"><label>Address</label><input type="text" id="sf-address" class="form-control" placeholder="Street, Area" /></div>
+        <div class="form-group">
+          <label>Store Name *</label>
+          <input type="text" id="sf-name" class="form-control" required placeholder="e.g. Bakehouse Mumbai" />
         </div>
-        <div class="form-group"><label>Description</label><textarea id="sf-desc" class="form-control" rows="3" placeholder="Tell customers about your bakery…"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div class="form-group">
+            <label>City *</label>
+            <input type="text" id="sf-city" class="form-control" required placeholder="Mumbai" />
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="sf-address" class="form-control" placeholder="Street, Area" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="sf-desc" class="form-control" rows="3" placeholder="Tell customers about your bakery…"></textarea>
+        </div>
+
+        <!-- FSSAI block — shown for register, hidden for edit -->
+        <div id="fssai-fields">
+          <p class="fssai-section-label">FSSAI Compliance</p>
+          <div class="form-group">
+            <label>FSSAI Licence Number *</label>
+            <input type="text" id="sf-fssai" class="form-control"
+              placeholder="12345678901234" maxlength="14" inputmode="numeric" />
+            <p class="fssai-hint">Your 14-digit FSSAI licence number</p>
+            <p class="fssai-error" id="sf-fssai-error">Must be exactly 14 digits.</p>
+          </div>
+          <div class="form-group">
+            <label>FSSAI Certificate Image *</label>
+            <div class="file-dropzone" id="sf-cert-zone"
+              onclick="document.getElementById('sf-cert').click()">
+              <span id="sf-cert-label">📎 Click to upload certificate (JPG / PNG)</span>
+              <input type="file" id="sf-cert" accept="image/jpeg,image/png,image/jpg"
+                style="display:none" onchange="onCertFileChange()" />
+            </div>
+            <p class="fssai-error" id="sf-cert-error">Please upload your certificate image.</p>
+          </div>
+        </div>
+
         <input type="hidden" id="sf-mode" value="register" />
       </form>
     </div>
@@ -197,7 +246,6 @@
   let myStore = null;
   let categories = [];
   let sellerOrdersPage = 1, sellerOrdersHasNext = false;
-  const SELLER_STATUSES = ["pending","confirmed","baking","out_for_delivery","cancelled"];
 
   // ── Tab switch ─────────────────────────────────────────────
   function showTab(name, el) {
@@ -227,24 +275,19 @@
 
   // ── Overview ───────────────────────────────────────────────
   async function loadOverview() {
-    try {
-      myStore = await Stores.myStore();
-    } catch { myStore = null; }
+    try { myStore = await Stores.myStore(); } catch { myStore = null; }
 
-    // Banner
     const bannerEl = document.getElementById("store-banner");
     if (!myStore) {
       bannerEl.innerHTML = `<div class="store-status-banner pending"><span class="banner-icon">🏪</span><div><strong>No store yet.</strong> Register your bakery to start selling.<button class="btn btn-orange btn-sm" style="margin-left:12px;" onclick="showTab('store')">Register Store</button></div></div>`;
       document.getElementById("overview-subtitle").textContent = "Set up your store to start selling.";
     } else {
-      const map = {approved:"approved",pending:"pending",suspended:"suspended"};
-      const cls = map[myStore.status] || "pending";
+      const cls = myStore.status;
       const msgs = { approved:"Your store is live and accepting orders.", pending:"Your store is under review. Products won't appear publicly until approved.", suspended:"Your store has been suspended by admin." };
       bannerEl.innerHTML = `<div class="store-status-banner ${cls}"><span class="banner-icon">${cls==="approved"?"✅":cls==="suspended"?"🚫":"⏳"}</span><strong>${myStore.name}</strong> — ${msgs[myStore.status]}</div>`;
       document.getElementById("overview-subtitle").textContent = "Welcome back, " + user.username + "!";
     }
 
-    // Stats
     let products=[], orders=[];
     try { const d = await Products.myProducts(); products = d.results||d; } catch {}
     try { const d = await Orders.sellerOrders(); orders = d.results||d; } catch {}
@@ -256,7 +299,6 @@
       <div class="stat-card green"><div class="stat-value">₹${totalEarnings.toFixed(0)}</div><div class="stat-label">Total Earnings</div></div>
       <div class="stat-card blue"><div class="stat-value">${pendingOrders}</div><div class="stat-label">Pending Orders</div></div>`;
 
-    // Recent orders
     const recentOL = document.getElementById("recent-orders-list");
     if (!orders.length) { recentOL.innerHTML = `<div class="empty-state"><p>No orders yet.</p></div>`; }
     else recentOL.innerHTML = orders.slice(0,5).map(o=>`
@@ -265,7 +307,6 @@
         <div style="display:flex;gap:8px;align-items:center;"><span style="font-weight:700;color:var(--orange);">₹${o.total_price}</span>${statusBadge(o.status)}</div>
       </div>`).join("");
 
-    // Recent products
     const recentPL = document.getElementById("recent-products-list");
     if (!products.length) { recentPL.innerHTML = `<div class="empty-state"><p>No products yet.</p></div>`; }
     else recentPL.innerHTML = products.slice(0,5).map(p=>`
@@ -275,48 +316,71 @@
       </div>`).join("");
   }
 
-  // ── STORE TAB ──────────────────────────────────────────────
+  // ── Store tab ──────────────────────────────────────────────
   async function loadStoreTab() {
     try { myStore = await Stores.myStore(); } catch { myStore = null; }
     const area = document.getElementById("store-setup-area");
+
     if (!myStore) {
       area.innerHTML = `
         <div class="no-store-card">
           <div class="icon">🏪</div>
           <h3>Register Your Bakery</h3>
-          <p style="margin:1rem 0;">Set up your store to list products and receive orders. Admin will review and approve it.</p>
+          <p style="margin:1rem 0;">Set up your store to list products and receive orders. Admin will review your FSSAI licence and approve it.</p>
           <button class="btn btn-orange btn-lg" onclick="openStoreModal('register')">Register Store</button>
         </div>`;
-    } else {
-      const cls = myStore.status;
-      area.innerHTML = `
-        <div class="store-status-banner ${cls}">
-          <span class="banner-icon">${cls==="approved"?"✅":cls==="suspended"?"🚫":"⏳"}</span>
-          <div>Status: <strong>${myStore.status}</strong>${myStore.status==="pending"?" — Awaiting admin approval":""}</div>
-        </div>
-        <div class="card" style="max-width:600px;">
-          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
-            <h3>${myStore.name}</h3>
-            <button class="btn btn-outline btn-sm" onclick="openStoreModal('update')">Edit Store</button>
-          </div>
-          <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-              <div><strong>City</strong><p>${myStore.city||"—"}</p></div>
-              <div><strong>Address</strong><p>${myStore.address||"—"}</p></div>
-              <div><strong>Commission Rate</strong><p>${myStore.commission_rate}%</p></div>
-              <div><strong>Owner</strong><p>${myStore.owner}</p></div>
-            </div>
-            ${myStore.description?`<div style="margin-top:1rem;"><strong>Description</strong><p>${myStore.description}</p></div>`:""}
-            <p style="font-size:0.78rem;color:var(--brown-light);margin-top:1rem;">Registered: ${fmtDate(myStore.created_at)}</p>
-          </div>
-        </div>`;
+      return;
     }
+
+    const cls = myStore.status;
+
+    // Rejection banner — only when suspended with a reason
+    const rejectionBanner = (cls === "suspended" && myStore.rejection_reason) ? `
+      <div class="rejection-banner">
+        <span class="rj-icon">⚠️</span>
+        <div>
+          <strong>Store Suspended — Reason from Admin:</strong>
+          <p>${myStore.rejection_reason}</p>
+        </div>
+      </div>` : "";
+
+    const certHTML = myStore.fssai_certificate
+      ? `<a href="http://127.0.0.1:8000${myStore.fssai_certificate}" target="_blank" class="cert-link">View Certificate ↗</a>`
+      : `<span style="color:var(--brown-light);font-size:0.85rem;">Not uploaded</span>`;
+
+    area.innerHTML = `
+      ${rejectionBanner}
+      <div class="store-status-banner ${cls}">
+        <span class="banner-icon">${cls==="approved"?"✅":cls==="suspended"?"🚫":"⏳"}</span>
+        <div>Status: <strong>${myStore.status}</strong>${myStore.status==="pending"?" — Awaiting FSSAI review &amp; approval":""}</div>
+      </div>
+      <div class="card" style="max-width:640px;">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h3>${myStore.name}</h3>
+          <button class="btn btn-outline btn-sm" onclick="openStoreModal('update')">Edit Store</button>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div><strong>City</strong><p>${myStore.city||"—"}</p></div>
+            <div><strong>Address</strong><p>${myStore.address||"—"}</p></div>
+            <div><strong>Commission Rate</strong><p>${myStore.commission_rate}%</p></div>
+            <div><strong>Owner</strong><p>${myStore.owner}</p></div>
+            <div><strong>FSSAI Number</strong><p class="fssai-number-val">${myStore.fssai_number||"—"}</p></div>
+            <div><strong>FSSAI Certificate</strong><p>${certHTML}</p></div>
+          </div>
+          ${myStore.description?`<div style="margin-top:1rem;"><strong>Description</strong><p>${myStore.description}</p></div>`:""}
+          <p style="font-size:0.78rem;color:var(--brown-light);margin-top:1rem;">Registered: ${fmtDate(myStore.created_at)}</p>
+        </div>
+      </div>`;
   }
 
+  // ── Store modal ────────────────────────────────────────────
   function openStoreModal(mode) {
     document.getElementById("sf-mode").value = mode;
     document.getElementById("store-modal-title").textContent = mode==="register" ? "Register Your Store" : "Edit Store";
-    document.getElementById("store-save-btn").textContent = mode==="register" ? "Submit Store" : "Save Changes";
+    document.getElementById("store-save-btn").textContent    = mode==="register" ? "Submit for Review"   : "Save Changes";
+    // FSSAI block only needed when registering
+    document.getElementById("fssai-fields").style.display   = mode==="register" ? "block" : "none";
     if (mode==="update" && myStore) {
       document.getElementById("sf-name").value    = myStore.name||"";
       document.getElementById("sf-city").value    = myStore.city||"";
@@ -324,25 +388,81 @@
       document.getElementById("sf-desc").value    = myStore.description||"";
     } else {
       document.getElementById("store-form").reset();
+      document.getElementById("sf-cert-label").textContent = "📎 Click to upload certificate (JPG / PNG)";
+      document.getElementById("sf-cert-zone").classList.remove("selected");
     }
+    document.getElementById("sf-fssai-error").style.display = "none";
+    document.getElementById("sf-cert-error").style.display  = "none";
     document.getElementById("store-modal").classList.add("open");
   }
+
   function closeStoreModal() { document.getElementById("store-modal").classList.remove("open"); }
 
+  function onCertFileChange() {
+    const file = document.getElementById("sf-cert").files[0];
+    if (!file) return;
+    document.getElementById("sf-cert-label").textContent = `✅ ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    document.getElementById("sf-cert-zone").classList.add("selected");
+    document.getElementById("sf-cert-error").style.display = "none";
+  }
+
+  // saveStore — FormData for register (file upload), JSON for update
   async function saveStore() {
     const mode    = document.getElementById("sf-mode").value;
-    const payload = {
-      name:        document.getElementById("sf-name").value.trim(),
-      city:        document.getElementById("sf-city").value.trim(),
-      address:     document.getElementById("sf-address").value.trim(),
-      description: document.getElementById("sf-desc").value.trim(),
-    };
-    const btn = document.getElementById("store-save-btn");
+    const name    = document.getElementById("sf-name").value.trim();
+    const city    = document.getElementById("sf-city").value.trim();
+    const address = document.getElementById("sf-address").value.trim();
+    const desc    = document.getElementById("sf-desc").value.trim();
+    const btn     = document.getElementById("store-save-btn");
+
+    if (mode === "register") {
+      const fssai    = document.getElementById("sf-fssai").value.trim();
+      const certFile = document.getElementById("sf-cert").files[0];
+
+      if (!/^\d{14}$/.test(fssai)) {
+        document.getElementById("sf-fssai-error").style.display = "block";
+        document.getElementById("sf-fssai").focus();
+        return;
+      }
+      document.getElementById("sf-fssai-error").style.display = "none";
+
+      if (!certFile) {
+        document.getElementById("sf-cert-error").style.display = "block";
+        return;
+      }
+      document.getElementById("sf-cert-error").style.display = "none";
+
+      const fd = new FormData();
+      fd.append("name",              name);
+      fd.append("city",              city);
+      fd.append("address",           address);
+      fd.append("description",       desc);
+      fd.append("fssai_number",      fssai);
+      fd.append("fssai_certificate", certFile, certFile.name);
+      // No Content-Type header — browser sets multipart boundary automatically
+
+      setLoading(btn, true);
+      try {
+        const res = await fetch(`${API_BASE}/stores/register/`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
+          body: fd,
+        });
+        if (!res.ok) throw await res.json();
+        toast("Store submitted for review! Admin will verify your FSSAI licence. ☕");
+        closeStoreModal();
+        loadStoreTab();
+        loadOverview();
+      } catch (e) { toast(parseError(e), "error"); }
+      setLoading(btn, false);
+      return;
+    }
+
+    // Update — plain JSON, no file
     setLoading(btn, true);
     try {
-      if (mode==="register") await Stores.register(payload);
-      else                   await Stores.updateMyStore(payload);
-      toast(mode==="register" ? "Store registered! Awaiting admin approval." : "Store updated successfully ✓");
+      await Stores.updateMyStore({ name, city, address, description: desc });
+      toast("Store updated successfully ✓");
       closeStoreModal();
       loadStoreTab();
       loadOverview();
@@ -350,7 +470,7 @@
     setLoading(btn, false);
   }
 
-  // ── PRODUCTS ───────────────────────────────────────────────
+  // ── Products ───────────────────────────────────────────────
   async function loadProducts() {
     try {
       const d = await Products.myProducts();
@@ -371,12 +491,7 @@
       <td style="font-weight:700;color:var(--orange);">₹${p.price}</td>
       <td>${p.stock}</td>
       <td><span class="badge badge-secondary">${p.category_name||"—"}</span></td>
-      <td>
-        <label class="toggle-avail">
-          <input type="checkbox" ${p.is_available?"checked":""} onchange="toggleAvailable(${p.id},this.checked)" />
-          <span class="toggle-slider"></span>
-        </label>
-      </td>
+      <td><label class="toggle-avail"><input type="checkbox" ${p.is_available?"checked":""} onchange="toggleAvailable(${p.id},this.checked)" /><span class="toggle-slider"></span></label></td>
       <td style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" onclick="openProductModal(${JSON.stringify(p).replace(/"/g,"&quot;")})">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Delete</button>
@@ -393,14 +508,14 @@
     document.getElementById("product-modal-title").textContent = p ? "Edit Product" : "Add Product";
     document.getElementById("product-save-btn").textContent    = p ? "Save Changes"  : "Add Product";
     if (p) {
-      document.getElementById("pf-id").value        = p.id;
-      document.getElementById("pf-name").value      = p.name||"";
-      document.getElementById("pf-price").value     = p.price||"";
-      document.getElementById("pf-stock").value     = p.stock||"";
-      document.getElementById("pf-desc").value      = p.description||"";
-      document.getElementById("pf-image").value     = p.image==="nill"?"":p.image||"";
-      document.getElementById("pf-available").checked = p.is_available;
-      document.getElementById("pf-category").value  = p.category||"";
+      document.getElementById("pf-id").value           = p.id;
+      document.getElementById("pf-name").value         = p.name||"";
+      document.getElementById("pf-price").value        = p.price||"";
+      document.getElementById("pf-stock").value        = p.stock||"";
+      document.getElementById("pf-desc").value         = p.description||"";
+      document.getElementById("pf-image").value        = p.image==="nill"?"":p.image||"";
+      document.getElementById("pf-available").checked  = p.is_available;
+      document.getElementById("pf-category").value     = p.category||"";
     } else {
       document.getElementById("product-form").reset();
       document.getElementById("pf-id").value = "";
@@ -441,7 +556,7 @@
     catch(e){ toast(parseError(e),"error"); }
   }
 
-  // ── SELLER ORDERS ──────────────────────────────────────────
+  // ── Seller orders ──────────────────────────────────────────
   async function loadSellerOrders(reset=false) {
     if (reset) { sellerOrdersPage=1; document.getElementById("orders-tbody").innerHTML=""; }
     try {
@@ -461,19 +576,13 @@
           <td style="color:var(--green);font-weight:600;">₹${o.seller_earnings}</td>
           <td>${statusBadge(o.status)}</td>
           <td style="font-size:0.8rem;">${fmtDate(o.created_at)}</td>
-          <td>
-            ${nextStatuses.length ? `<select class="order-status-select" onchange="advanceOrderStatus(${o.id},this.value,this)">
-              <option value="">Advance…</option>
-              ${nextStatuses.map(s=>`<option value="${s}">${s.replace(/_/g," ")}</option>`).join("")}
-            </select>` : `<span style="color:var(--brown-light);font-size:0.82rem;">${o.status==="delivered"?"Complete":"Cancelled"}</span>`}
-          </td>
-          <td><button class="btn btn-outline btn-sm" onclick="toggleOrderExpand(this, ${o.id})">View</button></td>`;
+          <td>${nextStatuses.length
+            ? `<select class="order-status-select" onchange="advanceOrderStatus(${o.id},this.value,this)"><option value="">Advance…</option>${nextStatuses.map(s=>`<option value="${s}">${s.replace(/_/g," ")}</option>`).join("")}</select>`
+            : `<span style="color:var(--brown-light);font-size:0.82rem;">${o.status==="delivered"?"Complete":"Cancelled"}</span>`}</td>
+          <td><button class="btn btn-outline btn-sm" onclick="toggleOrderExpand(this,${o.id})">View</button></td>`;
         const expandTr = document.createElement("tr");
         expandTr.className = "order-expand-row";
-        expandTr.innerHTML = `<td colspan="8"><div class="order-expand-inner" id="expand-${o.id}">
-          <strong>Items:</strong>
-          ${o.items.map(it=>`<div style="padding:4px 0;font-size:0.88rem;">${it.product.name} × ${it.quantity} — ₹${it.subtotal}</div>`).join("")}
-        </div></td>`;
+        expandTr.innerHTML = `<td colspan="8"><div class="order-expand-inner" id="expand-${o.id}"><strong>Items:</strong>${o.items.map(it=>`<div style="padding:4px 0;font-size:0.88rem;">${it.product.name} × ${it.quantity} — ₹${it.subtotal}</div>`).join("")}</div></td>`;
         tbody.appendChild(tr);
         tbody.appendChild(expandTr);
       });
@@ -494,16 +603,13 @@
 
   async function advanceOrderStatus(id, status, sel) {
     if (!status) return;
-    try {
-      await Orders.sellerUpdateStatus(id, status);
-      toast("Order #"+id+" → "+status.replace(/_/g," "));
-      loadSellerOrders(true);
-    } catch(e){ toast(parseError(e),"error"); sel.value=""; }
+    try { await Orders.sellerUpdateStatus(id, status); toast("Order #"+id+" → "+status.replace(/_/g," ")); loadSellerOrders(true); }
+    catch(e){ toast(parseError(e),"error"); sel.value=""; }
   }
 
   function loadMoreSellerOrders() { sellerOrdersPage++; loadSellerOrders(false); }
 
-  // ── PROFILE ───────────────────────────────────────────────
+  // ── Profile ────────────────────────────────────────────────
   async function loadProfile() {
     try {
       const u = await Auth.getProfile();

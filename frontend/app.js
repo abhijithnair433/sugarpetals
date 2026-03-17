@@ -92,7 +92,7 @@ function productImg(src) {
   if (!src || src === "nill" || src.trim() === "") {
     return `<div class="img-placeholder"><span>🍰</span></div>`;
   }
-  return `<img src="${src}" alt="product" onerror="this.parentElement.innerHTML='<div class=\"img-placeholder\"><span>🍰</span></div>'" />`;
+  return `<img src="${src}" alt="product" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'img-placeholder\\'><span>🍰</span></div>'" />`;
 }
 
 // ── Status badge ─────────────────────────────────────────────
